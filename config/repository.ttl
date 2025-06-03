@@ -1,0 +1,22 @@
+@prefix rep: <http://www.openrdf.org/config/repository#> .
+@prefix sr: <http://www.openrdf.org/config/repository/sail#> .
+@prefix sail: <http://www.openrdf.org/config/sail#> .
+@prefix graphdb: <http://www.ontotext.com/config/graphdb#> .
+
+[] a rep:Repository ;
+   rep:repositoryID "geonames" ;
+   rep:repositoryImpl [
+       rep:repositoryType "graphdb:FreeSailRepository" ;
+       sr:sailImpl [
+           sail:sailType "graphdb:FreeSail" ;
+
+           graphdb:ruleset "rdfsplus-optimized" ;
+           graphdb:storage-folder "storage" ;
+           graphdb:enable-context-index true ;
+           graphdb:enablePredicateList true ;
+           graphdb:enable-fts-index true ;
+           graphdb:enable-literal-index true ;
+           graphdb:enable-entity-index true ;
+           graphdb:in-memory-literal-properties false
+       ]
+   ] .

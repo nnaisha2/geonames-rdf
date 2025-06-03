@@ -1,0 +1,65 @@
+PREFIX gn: <http://www.geonames.org/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+CONSTRUCT {
+  ?altNameURI a gn:AlternateName ;
+    gn:alternateNameId ?alternateNameId ;
+    gn:geonameId ?geonameid ;
+    gn:alternateName ?alternateName ;
+    gn:languageCode ?isolanguage ;
+    gn:isPreferredName ?isPreferred ;
+    gn:isShortName ?isShort ;
+    gn:isColloquial ?isColloquial ;
+    gn:isHistoric ?isHistoric ;
+    gn:from ?fromDate ;
+    gn:to ?toDate ;
+    gn:linkedFeature ?featureURI .
+}
+WHERE {
+  SERVICE <x-sparql-anything:> {
+    fx:properties
+      fx:location ?_SOURCE_iri ; 
+      fx:csv.headers "true" ;
+      fx:csv.null-string "" .
+
+    ?row xyz:alternateNameId ?alternateNameId ;
+         xyz:geonameid ?geonameid ;
+         xyz:alternateName ?alternateName .
+
+    # Optional fields with FILTER to handle empty values
+    OPTIONAL { ?row xyz:isolanguage ?isolanguage }
+    OPTIONAL { 
+      ?row xyz:isPreferredName ?prefRaw 
+      BIND(IF(?prefRaw = "1", true, false) AS ?isPreferred)
+    }
+    OPTIONAL { 
+      ?row xyz:isShortName ?shortRaw 
+      BIND(IF(?shortRaw = "1", true, false) AS ?isShort)
+    }
+    OPTIONAL { 
+      ?row xyz:isColloquial ?colloquialRaw 
+      BIND(IF(?colloquialRaw = "1", true, false) AS ?isColloquial)
+    }
+    OPTIONAL { 
+      ?row xyz:isHistoric ?historicRaw 
+      BIND(IF(?historicRaw = "1", true, false) AS ?isHistoric)
+    }
+    OPTIONAL { 
+      ?row xyz:from ?fromRaw 
+      FILTER(?fromRaw != "")
+      BIND(xsd:date(?fromRaw) AS ?fromDate)
+    }
+    OPTIONAL { 
+      ?row xyz:to ?toRaw 
+      FILTER(?toRaw != "")
+      BIND(xsd:date(?toRaw) AS ?toDate)
+    }
+
+    # Create URIs for linking
+    BIND(IRI(CONCAT("http://sws.geonames.org/", ?geonameid, "/")) AS ?featureURI)
+    BIND(IRI(CONCAT("http://sws.geonames.org/alternateName/", ?alternateNameId)) AS ?altNameURI)
+  }
+}
