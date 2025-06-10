@@ -1,134 +1,63 @@
 PREFIX apf: <http://jena.apache.org/ARQ/property#>
-PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX fx: <http://sparql.xyz/facade-x/ns/>
 PREFIX gn: <https://www.geonames.org/ontology#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
 
 CONSTRUCT {
   ?uri a gn:Feature ;
        gn:name ?name ;
-       gn:alternateName ?alternateName ;
+       gn:asciiname ?asciiname ;
+       gn:alternateName ?alternatenames ;
        gn:countryCode ?countryCode ;
        gn:featureClass ?featureClass ;
        gn:featureCode ?featureCode ;
-       gn:parentADM1 ?parentAdm1 ;
-       gn:parentADM2 ?parentAdm2 ;
-       gn:parentADM3 ?parentAdm3 ;
-       gn:parentADM4 ?parentAdm4 ;
-       gn:parentCountry ?parentCountry ;
-       gn:locationMap ?locationMap ;
-       rdfs:isDefinedBy ?isDefinedBy ;
-       dcterms:modified ?modDate ;
+       gn:parentADM1 ?adm1 ;
+       gn:parentADM2 ?adm2 ;
+       gn:parentADM3 ?admin3Code ;
+       gn:parentADM4 ?admin4Code ;
+       gn:population ?population ;
+       gn:elevation ?elevation ;
+       gn:dem ?dem ;
+       gn:timezone ?timezone ;
+       gn:modificationDate ?modDate ;
        wgs84_pos:lat ?latitudeFloat ;
-       wgs84_pos:long ?longitudeFloat .
+       wgs84_pos:long ?longitudeFloat ;
+       rdfs:isDefinedBy ?isDefinedBy .
 }
 WHERE {
   SERVICE <x-sparql-anything:> {
     fx:properties
-      fx:location "{SOURCE}" ;
-      fx:ondisk "/tmp/sparql-anything-geonames" ;
-      fx:ondisk.reuse false ;
-      fx:null-string "" ;
+      fx:location ?_SOURCE ;
       fx:csv.delimiter "\t" ;
       fx:csv.headers true ;
+      fx:media-type "text/csv" ;
     .
+    ?s xyz:geonameid ?id ;
+       xyz:name ?name ;
+       xyz:asciiname ?asciiname ;
+       xyz:alternatenames ?alternatenames ;
+       xyz:country%20code ?countryCode ;
+       xyz:feature%20class ?featureClass ;
+       xyz:feature%20code ?featureCode ;
+       xyz:adm1 ?adm1 ;
+       xyz:adm2 ?adm2 ;
+       xyz:admin3%20code ?admin3Code ;
+       xyz:admin4%20code ?admin4Code ;
+       xyz:population ?population ;
+       xyz:elevation ?elevation ;
+       xyz:dem ?dem ;
+       xyz:timezone ?timezone ;
+       xyz:modification%20date ?modDate ;
+       xyz:latitude ?latitude ;
+       xyz:longitude ?longitude .
+    OPTIONAL { ?s xyz:isDefinedBy ?isDefinedBy . }
 
-    ?s
-      xyz:geonameid ?id ;
-      xyz:name ?name ;
-      xyz:alternatenames ?alternateNameString ;
-      xyz:country%20code ?countryCode ;
-      xyz:feature%20class ?featureClassString ;
-      xyz:feature%20code ?featureCodeString ;
-      xyz:admin1%20code ?adm1 ;
-      xyz:admin2%20code ?adm2 ;
-      xyz:admin3%20code ?adm3 ;
-      xyz:admin4%20code ?adm4 ;
-      xyz:modification%20date ?modDate ;
-      xyz:latitude ?latitude ;
-      xyz:longitude ?longitude ;
-    .
-
-    # Admin1 Code Resolution
-    OPTIONAL {
-      SERVICE <x-sparql-anything:> {
-        fx:properties fx:location "data/admin1-codes.csv" ;
-          fx:csv.delimiter "\t" ;
-          fx:csv.headers true .
-        [ 
-          xyz:code ?adm1Full ;
-          xyz:geonameId ?adm1Id 
-        ]
-      }
-      FILTER(CONCAT(?countryCode, ".", ?adm1) = ?adm1Full)
-    }
-
-    # Admin2 Code Resolution
-    OPTIONAL {
-      SERVICE <x-sparql-anything:> {
-        fx:properties fx:location "data/admin2-codes.csv" ;
-          fx:csv.delimiter "\t" ;
-          fx:csv.headers true .
-        [ 
-          xyz:code ?adm2Full ;
-          xyz:geonameId ?adm2Id 
-        ]
-      }
-      FILTER(CONCAT(?countryCode, ".", ?adm1, ".", ?adm2) = ?adm2Full)
-    }
-
-    # Admin3 Resolution (from main data)
-    OPTIONAL {
-      SERVICE <x-sparql-anything:> {
-        fx:properties fx:location "{SOURCE}" ;
-          fx:csv.delimiter "\t" ;
-          fx:csv.headers true .
-        ?adm3Entry
-          xyz:country%20code ?countryCode ;
-          xyz:admin1%20code ?adm1 ;
-          xyz:admin2%20code ?adm2 ;
-          xyz:admin3%20code ?adm3 ;
-          xyz:feature%20class "A" ;
-          xyz:feature%20code "ADM3" ;
-          xyz:geonameid ?adm3Id .
-      }
-    }
-
-    # Admin4 Resolution (from main data)
-    OPTIONAL {
-      SERVICE <x-sparql-anything:> {
-        fx:properties fx:location "{SOURCE}" ;
-          fx:csv.delimiter "\t" ;
-          fx:csv.headers true .
-        ?adm4Entry
-          xyz:country%20code ?countryCode ;
-          xyz:admin1%20code ?adm1 ;
-          xyz:admin2%20code ?adm2 ;
-          xyz:admin3%20code ?adm3 ;
-          xyz:admin4%20code ?adm4 ;
-          xyz:feature%20class "A" ;
-          xyz:feature%20code "ADM4" ;
-          xyz:geonameid ?adm4Id .
-      }
-    }
-
-    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) AS ?uri)
-    BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString)) AS ?featureClass)
-    BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)) AS ?featureCode)
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) as ?uri)
     BIND(xsd:float(?latitude) AS ?latitudeFloat)
     BIND(xsd:float(?longitude) AS ?longitudeFloat)
-
-    BIND(URI(CONCAT("https://sws.geonames.org/", COALESCE(?adm1Id, ?adm1), "/")) AS ?parentAdm1)
-    BIND(URI(CONCAT("https://sws.geonames.org/", COALESCE(?adm2Id, ?adm2), "/")) AS ?parentAdm2)
-    BIND(URI(CONCAT("https://sws.geonames.org/", COALESCE(?adm3Id, ?adm3), "/")) AS ?parentAdm3)
-    BIND(URI(CONCAT("https://sws.geonames.org/", COALESCE(?adm4Id, ?adm4), "/")) AS ?parentAdm4)
-    BIND(URI(CONCAT("https://sws.geonames.org/", ?countryCode, "/")) AS ?parentCountry)
-
-    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) AS ?locationMap)
-    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/about.rdf")) AS ?isDefinedBy)
   }
 }
-

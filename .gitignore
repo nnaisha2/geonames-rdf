@@ -2,3 +2,4 @@ data/*
 bin/*
 fuseki/*
 output/*
+config/test.rq
