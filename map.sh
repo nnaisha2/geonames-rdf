@@ -44,13 +44,13 @@ done
 
 # Process alternate names with all features
 echo "Processing alternate names..."
-for f in "$DATA_DIR"/alternateNames_*.csv; do
+for f in "$DATA_DIR"/alternateNamesV2_*.csv; do
     echo "Processing $f..."
     java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
         --query "$CONFIG_DIR/alternateNames.rq" \
         -v "SOURCE=$f" \
         --load "$DATA_DIR"/geonames_*.csv.ttl \
-        --output "$f.ttl"
+        --output "${f%.csv}.ttl"
 done
 
 # Final merge with proper ordering
@@ -58,7 +58,6 @@ echo "Merging outputs..."
 cat "$DATA_DIR"/geonames_*.csv.ttl \
     "$DATA_DIR"/alternateNames_*.csv.ttl \
     "$DATA_DIR"/admin-codes.ttl \
-    "$DATA_DIR"/hierarchy.ttl > "$OUTPUT_DIR/geonames-enhanced.ttl"
+    "$DATA_DIR"/hierarchy.ttl > "$OUTPUT_DIR/geonames.ttl"
 
-echo "Processing complete! Enhanced output at:"
-echo "  $OUTPUT_DIR/geonames-enhanced.ttl"
+echo "Processing complete. Final output: $OUTPUT_DIR/geonames.ttl"
