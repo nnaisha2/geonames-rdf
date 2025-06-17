@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-set -x
+set -x  
 
 # Configuration
 DATA_DIR="$PWD/data"
@@ -44,20 +44,39 @@ done
 
 # Process alternate names with all features
 echo "Processing alternate names..."
-for f in "$DATA_DIR"/alternateNamesV2_*.csv; do
+for f in "$DATA_DIR"/alternateNamesV2_DE_*.csv; do
     echo "Processing $f..."
     java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
         --query "$CONFIG_DIR/alternateNames.rq" \
         -v "SOURCE=$f" \
         --load "$DATA_DIR"/geonames_*.csv.ttl \
-        --output "${f%.csv}.ttl"
+        --output "$f.ttl"
 done
+
+#process postal codes
+echo "Processing postal codes..."
+java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
+    --query "$CONFIG_DIR/postal-codes.rq" \
+    --load "$DATA_DIR/admin-codes.ttl" \
+    --output "$DATA_DIR/postal-codes.ttl"
+
 
 # Final merge with proper ordering
 echo "Merging outputs..."
 cat "$DATA_DIR"/geonames_*.csv.ttl \
-    "$DATA_DIR"/alternateNames_*.csv.ttl \
+    "$DATA_DIR"/alternateNamesV2_*.csv.ttl \
     "$DATA_DIR"/admin-codes.ttl \
-    "$DATA_DIR"/hierarchy.ttl > "$OUTPUT_DIR/geonames.ttl"
+    "$DATA_DIR"/hierarchy.ttl \
+    "$DATA_DIR"/postal-codes.ttl > "$OUTPUT_DIR/geonames_pre_optimization.ttl"
 
-echo "Processing complete. Final output: $OUTPUT_DIR/geonames.ttl"
+
+echo "Optimizing output format..."
+java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
+    --query "$CONFIG_DIR/consolidate.rq" \
+    --load "$OUTPUT_DIR/geonames_pre_optimization.ttl" \
+    --output "$OUTPUT_DIR/geonames.ttl"
+
+
+echo "Final output at:"
+echo "  $OUTPUT_DIR/geonames.ttl"
+#echo "Processing complete. Final output: $OUTPUT_DIR/geonames.ttl"

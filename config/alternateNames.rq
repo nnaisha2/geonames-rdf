@@ -1,90 +1,62 @@
-# alternateNames.rq
-# Converts Geonames alternateNames CSV data to RDF
-
-### PREFIX DECLARATIONS
-
-PREFIX gn:      <https://www.geonames.org/ontology#>  
-PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>   
+PREFIX gn: <https://www.geonames.org/ontology#>  
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>   
 PREFIX dcterms: <http://purl.org/dc/terms/>         
-PREFIX fx:      <http://sparql.xyz/facade-x/ns/>     
-PREFIX xyz:     <http://sparql.xyz/facade-x/data/>   
-PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#> 
-
-
-### CONSTRUCT TEMPLATE (What the output RDF will look like)
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>     
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>   
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
-  # Core name properties
-  ?featureURI gn:alternateName ?alternateName ;   # Other names for the feature
-        gn:officialName ?officialName ;           # Formal/official names
-        gn:shortName ?shortName ;                 # Abbreviated names
-        gn:name ?preferredName ;                  # Primary display name
-        rdfs:label ?preferredName ;               # Human-readable label
-        
-  # Special cases  
-  gn:wikipediaArticle ?wikipediaArticle .         # Links to Wikipedia pages
+  ?featureURI gn:alternateName ?alternateName ;
+        gn:officialName ?officialName ;
+        gn:shortName ?shortName ;
+        gn:name ?preferredName ;
+        rdfs:label ?preferredName ;
+        gn:wikipediaArticle ?wikipediaArticle ;
+        rdfs:seeAlso ?dbpediaResource ;
+
 }
 WHERE {
-
-  ### DATA SOURCE CONFIGURATION (SPARQL Anything setup for CSV parsing)
-
   SERVICE <x-sparql-anything:> {
-    # File parsing parameters
     fx:properties
-      fx:location ?_SOURCE_iri ;          # Input file path 
-      fx:csv.headers "true" ;             # First row contains headers
-      fx:csv.delimiter "\t" ;             # Tab-delimited format
-      fx:csv.null-string "" .             # Treat empty strings as NULL
-
+      fx:location ?_SOURCE_iri ;
+      fx:csv.headers "true" ;
+      fx:csv.delimiter "\t" ;
+      fx:csv.null-string "" .
    
-    ### CSV FIELD BINDINGS
-
-    ?row xyz:geonameid ?geonameid ;       # Unique Geonames identifier
-         xyz:alternateName ?nameValue .   # The name string itself
+    ?row xyz:geonameid ?geonameid ;
+         xyz:alternateName ?nameValue .
     
-    # Optional fields (may be empty in source)
-    OPTIONAL { ?row xyz:isolanguage ?lang }       # Language code (e.g., "de", "en")
-    OPTIONAL { ?row xyz:isPreferredName ?pref }   # "1" if official/preferred name
-    OPTIONAL { ?row xyz:isShortName ?short }      # "1" if abbreviated name
-
-
-    ### URI CONSTRUCTION
-
-    # Creates proper Geonames URIs like "https://sws.geonames.org/123456/"
+    OPTIONAL { ?row xyz:isolanguage ?lang }
+    OPTIONAL { ?row xyz:isPreferredName ?pref }
+    OPTIONAL { ?row xyz:isShortName ?short }
 
     BIND(IRI(CONCAT("https://sws.geonames.org/", ?geonameid, "/")) AS ?featureURI)
+    
+    # Wikipedia links
+    BIND(IF(?lang = "link" && STRSTARTS(?nameValue, "http"), ?nameValue, ?undef) AS ?wikipediaLink)
+    
+    # DBpedia seeAlso link
+    BIND(IF(BOUND(?wikipediaLink), IRI(CONCAT("https://dbpedia.org/resource/", IF(CONTAINS(REPLACE(STR(?wikipediaLink), "^https?://[a-z\\-]+\\.wikipedia\\.org/wiki/", ""), "%"), REPLACE(STR(?wikipediaLink), "^https?://[a-z\\-]+\\.wikipedia\\.org/wiki/", ""), ENCODE_FOR_URI(REPLACE(STR(?wikipediaLink), "^https?://[a-z\\-]+\\.wikipedia\\.org/wiki/", ""))))), 1/0) AS ?dbpediaResource)
 
-    ### DATA TRANSFORMATION RULES
+    # Language-tagged names
+    BIND(IF(BOUND(?lang) && ?lang != "" && ?lang != "link", STRLANG(STR(?nameValue), ?lang), ?undef) AS ?langName)
     
+    # Official names
+    BIND(IF(?pref = "1" && ?lang != "link", ?langName, ?undef) AS ?officialName)
     
-    # Identifies and validates Wikipedia URLs (when isolanguage = "link")
-    BIND(IF(?lang = "link" && STRSTARTS(?nameValue, "http"), ?nameValue, "") AS ?wikipediaLink)
-    FILTER(?wikipediaLink = "" || STRSTARTS(?wikipediaLink, "http")) # URL validation
+    # Short names
+    BIND(IF(?short = "1", ?langName, ?undef) AS ?shortName)
     
-
-    # Adds language tags to names (e.g., "München"@de) and skips if no language or for Wikipedia links
-    BIND(IF(BOUND(?lang) && ?lang != "" && ?lang != "link", STRLANG(?nameValue, ?lang), "") AS ?langName)
+    # Alternate names
+    BIND(IF((!BOUND(?pref) || ?pref != "1") && ?lang != "link", ?langName, ?undef) AS ?alternateName)
     
-    # Official names (preferred names)
-    BIND(IF(?pref = "1" && ?lang != "link", ?langName, "") AS ?officialName)
-    
-    # Short names (abbreviations)
-    BIND(IF(?short = "1", ?langName, "") AS ?shortName)
-    
-    # Alternate names (other variants)
-    BIND(IF((!BOUND(?pref) || ?pref != "1") && ?lang != "link", ?langName, "") AS ?alternateName)
-    
-    # Preferred name (for display/labeling)
-    BIND(IF(?pref = "1", ?langName, "") AS ?preferredName)
+    # Preferred name
+    BIND(IF(?pref = "1", ?langName, ?undef) AS ?preferredName)
     
     # Only include records with at least one valid value
-    FILTER(?wikipediaLink != "" || ?officialName != "" || ?shortName != "" || ?alternateName != "")
+    FILTER(BOUND(?wikipediaLink) || BOUND(?officialName) || BOUND(?shortName) || BOUND(?alternateName))
     
-    # Final output bindings (with empty values removed)
-    BIND(IF(?wikipediaLink != "", IRI(?wikipediaLink), ?undef) AS ?wikipediaArticle)
-    BIND(IF(?alternateName != "", ?alternateName, ?undef) AS ?finalAlternateName)
-    BIND(IF(?officialName != "", ?officialName, ?undef) AS ?finalOfficialName)
-    BIND(IF(?shortName != "", ?shortName, ?undef) AS ?finalShortName)
-    BIND(IF(?preferredName != "", ?preferredName, ?undef) AS ?finalPreferredName)
+    # Final output bindings
+    BIND(IF(BOUND(?wikipediaLink), IRI(?wikipediaLink), ?undef) AS ?wikipediaArticle)
   }
 }

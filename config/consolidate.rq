@@ -1,0 +1,9 @@
+PREFIX gn: <https://www.geonames.org/ontology#>
+CONSTRUCT {
+  ?uri ?p ?o .
+}
+WHERE {
+  ?uri a gn:Feature ;
+       ?p ?o .
+}
+ORDER BY ?uri  

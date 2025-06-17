@@ -1,71 +1,120 @@
-PREFIX apf: <http://jena.apache.org/ARQ/property#>
 PREFIX fx: <http://sparql.xyz/facade-x/ns/>
-PREFIX gn: <https://www.geonames.org/ontology#>
 PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX gn: <https://www.geonames.org/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 
 CONSTRUCT {
-    ?uri a gn:Feature ;
-        gn:name ?name ;
-        gn:asciiname ?asciiname ;
-        gn:alternateName ?alternatenames ;
-        gn:countryCode ?countryCode ;
-        gn:featureClass ?featureClass ;
-        gn:featureCode ?featureCode ;
-        gn:parentADM1 ?parentAdm1 ;
-        gn:parentADM2 ?parentAdm2 ;
-        gn:parentADM3 ?parentAdm3 ;
-        gn:parentADM4 ?parentAdm4 ;
-        gn:population ?population ;
-        gn:elevation ?elevation ;
-        gn:dem ?dem ;
-        gn:timezone ?timezone ;
-        gn:modificationDate ?modDate ;
-        wgs84_pos:lat ?latitudeFloat ;
-        wgs84_pos:long ?longitudeFloat ;
-        rdfs:isDefinedBy ?isDefinedBy .
+  ?uri a gn:Feature ;
+    gn:name ?name ;
+    rdfs:isDefinedBy ?definitionDoc ;
+    gn:asciiname ?asciiname ;
+    gn:countryCode ?countryCode ;
+    gn:featureClass ?featureClass ;
+    gn:featureCode ?featureCode ;
+    gn:population ?population ;
+    wgs84_pos:lat ?latitudeFloat ;
+    wgs84_pos:long ?longitudeFloat ;
+    gn:nearbyFeatures ?nearbyEndpoint ;
+    gn:locationMap ?locationMapUri ;
+    gn:parentCountry ?parentCountry ;
+    gn:alternateName ?alternatenames ;
+    gn:parentADM1 ?parentAdm1 ;
+    gn:parentADM2 ?parentAdm2 ;
+    gn:parentADM3 ?parentAdm3 ;
+    gn:parentADM4 ?parentAdm4 ;
+    gn:elevation ?elevation ;
+    gn:dem ?dem ;
+    gn:timezone ?timezone ;
+    gn:modificationDate ?modDate .
 }
 WHERE {
-    SERVICE <x-sparql-anything:> {
-        fx:properties
-            fx:location ?_SOURCE ;
-            fx:csv.delimiter "\t" ;
-            fx:csv.headers true ;
-        .
-        ?s xyz:geonameid ?id ;
-           xyz:name ?name ;
-           xyz:asciiname ?asciiname ;
-           xyz:alternatenames ?alternatenames ;
-           xyz:country%20code ?countryCode ;
-           xyz:feature%20class ?featureClassString ;
-           xyz:feature%20code ?featureCodeString ;
-           xyz:adm1 ?adm1 ;
-           xyz:adm2 ?adm2 ;
-           xyz:admin3%20code ?admin3Code ;
-           xyz:admin4%20code ?admin4Code ;
-           xyz:population ?population ;
-           xyz:elevation ?elevation ;
-           xyz:dem ?dem ;
-           xyz:timezone ?timezone ;
-           xyz:modification%20date ?modDate ;
-           xyz:latitude ?latitude ;
-           xyz:longitude ?longitude .
-        
-        OPTIONAL { ?s xyz:isDefinedBy ?isDefinedBy . }
+  SERVICE <x-sparql-anything:> {
+    fx:properties
+      fx:location ?_SOURCE ;
+      fx:ondisk "/tmp/sparql-anything-geonames" ;
+      fx:ondisk.reuse false ;
+      fx:null-string "" ;
+      fx:csv.delimiter "\t" ;
+      fx:csv.headers true ;
+    .
 
-        BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) as ?uri)
-        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString)) as ?featureClass)
-        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)) as ?featureCode)
-        BIND(xsd:float(?latitude) AS ?latitudeFloat)
-        BIND(xsd:float(?longitude) AS ?longitudeFloat)
-    }
+    # Minimal required fields
+    ?s xyz:geonameid ?id ;
+       xyz:name ?name ;
+       xyz:asciiname ?asciiname ;
+       xyz:country%20code ?countryCode ;
+       xyz:feature%20class ?featureClassString ;
+       xyz:latitude ?latitude ;
+       xyz:longitude ?longitude ;
+       xyz:population ?population .
 
-    # Link to admin entities
-    OPTIONAL { ?parentAdm1 gn:admin1Code ?adm1 }
-    OPTIONAL { ?parentAdm2 gn:admin2Code ?adm2 }
-    OPTIONAL { ?parentAdm3 gn:admin3Code ?admin3Code }
-    OPTIONAL { ?parentAdm4 gn:admin4Code ?admin4Code }
+    # Optional fields
+    OPTIONAL { ?s xyz:feature%20code ?featureCodeString . }
+    OPTIONAL { ?s xyz:alternatenames ?alternatenames . }
+    OPTIONAL { ?s xyz:elevation ?elevation . }
+    OPTIONAL { ?s xyz:dem ?dem . }
+    OPTIONAL { ?s xyz:timezone ?timezone . }
+    OPTIONAL { ?s xyz:modification%20date ?modDate . }
+    OPTIONAL { ?s xyz:adm1 ?adm1FullCode . }
+    OPTIONAL { ?s xyz:adm2 ?adm2FullCode . }
+    OPTIONAL { ?s xyz:admin3%20code ?admin3LocalCode . }
+    OPTIONAL { ?s xyz:admin4%20code ?admin4LocalCode . }
+
+    # BINDs for URIs and transformed values
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) AS ?uri)
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/about.rdf")) AS ?definitionDoc)
+    BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString)) AS ?featureClass)
+    BIND(
+      IF(BOUND(?featureCodeString) && ?featureCodeString != "",
+         URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)),
+         ""
+      ) AS ?featureCode
+    )
+    BIND(xsd:float(?latitude) AS ?latitudeFloat)
+    BIND(xsd:float(?longitude) AS ?longitudeFloat)
+    BIND(URI("https://sws.geonames.org/2921044/") AS ?parentCountry)
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/nearby.rdf")) AS ?nearbyEndpoint)
+    BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", ENCODE_FOR_URI(REPLACE(LCASE(?asciiname), " ", "-")), ".html")) AS ?locationMapUri)
+
+    # Admin code string construction for ADM3/ADM4
+    BIND(
+      IF(BOUND(?adm2FullCode) && BOUND(?admin3LocalCode) && ?admin3LocalCode != "" && ?admin3LocalCode != "NONE",
+         CONCAT(?adm2FullCode, ".", ?admin3LocalCode),
+         ""
+      ) AS ?adm3FullCode
+    )
+    BIND(
+      IF(?adm3FullCode != "" && BOUND(?admin4LocalCode) && ?admin4LocalCode != "" && ?admin4LocalCode != "NONE",
+         CONCAT(?adm3FullCode, ".", ?admin4LocalCode),
+         ""
+      ) AS ?adm4FullCode
+    )
+  }
+
+  # --- Efficient admin code lookups using loaded admin-codes.ttl ---
+  # Only emit triple if matching admin code is present and not self-parenting.
+
+  OPTIONAL {
+    FILTER(BOUND(?adm1FullCode) && ?adm1FullCode != "")
+    ?parentAdm1 gn:admin1Code ?adm1FullCode .
+    FILTER(?parentAdm1 != ?uri)
+  }
+  OPTIONAL {
+    FILTER(BOUND(?adm2FullCode) && ?adm2FullCode != "")
+    ?parentAdm2 gn:admin2Code ?adm2FullCode .
+    FILTER(?parentAdm2 != ?uri)
+  }
+  OPTIONAL {
+    FILTER(?adm3FullCode != "")
+    ?parentAdm3 gn:admin3Code ?adm3FullCode .
+    FILTER(?parentAdm3 != ?uri)
+  }
+  OPTIONAL {
+    FILTER(?adm4FullCode != "")
+    ?parentAdm4 gn:admin4Code ?adm4FullCode .
+    FILTER(?parentAdm4 != ?uri)
+  }
 }

@@ -58,8 +58,15 @@ for f in $DATA_DIR/geonames_*; do
     rm $f
 done
 
+
+# This awk command processes each line of the input file(s) and applies the given pattern or action.
 # Extract German geonameIDs for alternate names processing
 echo "Extracting German geonameIDs for alternate names filtering..."
+# The awk command:
+# 1. First reads all German geonameIDs into memory (NR==FNR)
+# 2. Then processes alternateNamesV2.txt, keeping only rows where $2 (geonameid) exists in our German IDs
+# 3. Ensures each output row has exactly 10 fields (some input rows might be incomplete)
+
 awk -F'\t' 'NR>1 {print $1}' "$DATA_DIR/geonamesplus.csv" > "$DATA_DIR/geonameids_de.txt"
 
 # Download and filter alternateNamesV2 for Germany
@@ -68,19 +75,7 @@ curl -sS "https://download.geonames.org/export/dump/alternateNamesV2.zip" -o alt
 unzip -o alternateNamesV2.zip alternateNamesV2.txt
 
 echo "Processing alternate names to match German locations..."
-# The awk command:
-# 1. First reads all German geonameIDs into memory (NR==FNR)
-# 2. Then processes alternateNamesV2.txt, keeping only rows where $2 (geonameid) exists in our German IDs
-# 3. Ensures each output row has exactly 10 fields (some input rows might be incomplete)
-awk -F'\t' -v OFS='\t' '
-  NR==FNR {ids[$1]; next} 
-  $2 in ids {
-    # Ensure exactly 10 fields
-    for(i=NF+1; i<=10; i++) $i = "";
-    print
-  }' \
-  "$DATA_DIR/geonameids_de.txt" alternateNamesV2.txt > "$DATA_DIR/alternateNamesV2_DE.csv"
-
+awk -F'\t' -v OFS='\t' 'NR==FNR {ids[$1]; next} $2 in ids {for(i=NF+1;i<=10;i++) $i=""; print}' "$DATA_DIR/geonameids_de.txt" alternateNamesV2.txt > "$DATA_DIR/alternateNamesV2_DE.csv"
 rm alternateNamesV2.zip alternateNamesV2.txt
 
 # Split alternate names into chunks
@@ -111,6 +106,13 @@ curl -sS "https://download.geonames.org/export/dump/hierarchy.zip" -o hierarchy.
 unzip -o hierarchy.zip hierarchy.txt
 cat hierarchy.txt >> "$DATA_DIR/hierarchy.csv"
 rm hierarchy.zip hierarchy.txt
+
+echo "  - Processing postal code data for Germany..."
+cp "$CONFIG_DIR/headers-PostalCode.csv" "$DATA_DIR/postal-codes-DE.csv"
+curl -sS "https://download.geonames.org/export/zip/DE.zip" -o postal-codes-DE.zip
+unzip -o postal-codes-DE.zip DE.txt
+cat DE.txt >> "$DATA_DIR/postal-codes-DE.csv"
+rm postal-codes-DE.zip DE.txt
 
 # Create admin3 and admin4 codes from geonames data
 # These are identified by specific feature classes and codes:
