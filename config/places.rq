@@ -8,56 +8,64 @@ PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 
 CONSTRUCT {
-  ?uri a gn:Feature ;
-       gn:name ?name ;
-       gn:asciiname ?asciiname ;
-       gn:alternateName ?alternatenames ;
-       gn:countryCode ?countryCode ;
-       gn:featureClass ?featureClass ;
-       gn:featureCode ?featureCode ;
-       gn:parentADM1 ?adm1 ;
-       gn:parentADM2 ?adm2 ;
-       gn:parentADM3 ?admin3Code ;
-       gn:parentADM4 ?admin4Code ;
-       gn:population ?population ;
-       gn:elevation ?elevation ;
-       gn:dem ?dem ;
-       gn:timezone ?timezone ;
-       gn:modificationDate ?modDate ;
-       wgs84_pos:lat ?latitudeFloat ;
-       wgs84_pos:long ?longitudeFloat ;
-       rdfs:isDefinedBy ?isDefinedBy .
+    ?uri a gn:Feature ;
+        gn:name ?name ;
+        gn:asciiname ?asciiname ;
+        gn:alternateName ?alternatenames ;
+        gn:countryCode ?countryCode ;
+        gn:featureClass ?featureClass ;
+        gn:featureCode ?featureCode ;
+        gn:parentADM1 ?parentAdm1 ;
+        gn:parentADM2 ?parentAdm2 ;
+        gn:parentADM3 ?parentAdm3 ;
+        gn:parentADM4 ?parentAdm4 ;
+        gn:population ?population ;
+        gn:elevation ?elevation ;
+        gn:dem ?dem ;
+        gn:timezone ?timezone ;
+        gn:modificationDate ?modDate ;
+        wgs84_pos:lat ?latitudeFloat ;
+        wgs84_pos:long ?longitudeFloat ;
+        rdfs:isDefinedBy ?isDefinedBy .
 }
 WHERE {
-  SERVICE <x-sparql-anything:> {
-    fx:properties
-      fx:location ?_SOURCE ;
-      fx:csv.delimiter "\t" ;
-      fx:csv.headers true ;
-      fx:media-type "text/csv" ;
-    .
-    ?s xyz:geonameid ?id ;
-       xyz:name ?name ;
-       xyz:asciiname ?asciiname ;
-       xyz:alternatenames ?alternatenames ;
-       xyz:country%20code ?countryCode ;
-       xyz:feature%20class ?featureClass ;
-       xyz:feature%20code ?featureCode ;
-       xyz:adm1 ?adm1 ;
-       xyz:adm2 ?adm2 ;
-       xyz:admin3%20code ?admin3Code ;
-       xyz:admin4%20code ?admin4Code ;
-       xyz:population ?population ;
-       xyz:elevation ?elevation ;
-       xyz:dem ?dem ;
-       xyz:timezone ?timezone ;
-       xyz:modification%20date ?modDate ;
-       xyz:latitude ?latitude ;
-       xyz:longitude ?longitude .
-    OPTIONAL { ?s xyz:isDefinedBy ?isDefinedBy . }
+    SERVICE <x-sparql-anything:> {
+        fx:properties
+            fx:location ?_SOURCE ;
+            fx:csv.delimiter "\t" ;
+            fx:csv.headers true ;
+        .
+        ?s xyz:geonameid ?id ;
+           xyz:name ?name ;
+           xyz:asciiname ?asciiname ;
+           xyz:alternatenames ?alternatenames ;
+           xyz:country%20code ?countryCode ;
+           xyz:feature%20class ?featureClassString ;
+           xyz:feature%20code ?featureCodeString ;
+           xyz:adm1 ?adm1 ;
+           xyz:adm2 ?adm2 ;
+           xyz:admin3%20code ?admin3Code ;
+           xyz:admin4%20code ?admin4Code ;
+           xyz:population ?population ;
+           xyz:elevation ?elevation ;
+           xyz:dem ?dem ;
+           xyz:timezone ?timezone ;
+           xyz:modification%20date ?modDate ;
+           xyz:latitude ?latitude ;
+           xyz:longitude ?longitude .
+        
+        OPTIONAL { ?s xyz:isDefinedBy ?isDefinedBy . }
 
-    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) as ?uri)
-    BIND(xsd:float(?latitude) AS ?latitudeFloat)
-    BIND(xsd:float(?longitude) AS ?longitudeFloat)
-  }
+        BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) as ?uri)
+        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString)) as ?featureClass)
+        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)) as ?featureCode)
+        BIND(xsd:float(?latitude) AS ?latitudeFloat)
+        BIND(xsd:float(?longitude) AS ?longitudeFloat)
+    }
+
+    # Link to admin entities
+    OPTIONAL { ?parentAdm1 gn:admin1Code ?adm1 }
+    OPTIONAL { ?parentAdm2 gn:admin2Code ?adm2 }
+    OPTIONAL { ?parentAdm3 gn:admin3Code ?admin3Code }
+    OPTIONAL { ?parentAdm4 gn:admin4Code ?admin4Code }
 }

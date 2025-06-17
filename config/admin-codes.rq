@@ -7,41 +7,23 @@ PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
 PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 CONSTRUCT {
-    ?countryUri xyz:countryId ?countryId .
-    ?countryUri xyz:countryCode ?countryCode .
-    ?countryUri xyz:name ?countryName .
-
-    ?adm1Uri xyz:admin1code ?adm1code .
-    ?adm2Uri xyz:admin2code ?adm2code .
-    ?adm3Uri xyz:admin3code ?adm3code .
-    ?adm4Uri xyz:admin4code ?adm4code .
+    ?adm1Uri gn:admin1Code ?adm1Code .
+    ?adm2Uri gn:admin2Code ?adm2Code .
+    ?adm3Uri gn:admin3Code ?adm3Code .
+    ?adm4Uri gn:admin4Code ?adm4Code .
 }
 WHERE {
     {
-        SERVICE <x-sparql-anything:> {
-            fx:properties fx:location "data/country-codes.csv" ;
-                fx:csv.delimiter "\t" ;
-                fx:csv.headers true ;
-            .
-            [
-                xyz:countryId ?countryId ;
-                xyz:countryCode ?countryCode ;
-                xyz:name ?countryName ;
-            ]
-            BIND(URI(CONCAT("https://sws.geonames.org/", ?countryId, "/")) AS ?countryUri)
-        }
-    }
-    UNION {
         SERVICE <x-sparql-anything:> {
             fx:properties fx:location "data/admin1-codes.csv" ;
                 fx:csv.delimiter "\t" ;
                 fx:csv.headers true ;
             .
             [
-                xyz:admin1code ?adm1code ;
+                xyz:admin1code ?adm1Code ;
                 xyz:geonameId ?adm1Id ;
             ]
-            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm1Id, "/")) AS ?adm1Uri)
+            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm1Id, "/")) as ?adm1Uri)
         }
     }
     UNION {
@@ -51,10 +33,10 @@ WHERE {
                 fx:csv.headers true ;
             .
             [
-                xyz:admin2code ?adm2code ;
+                xyz:admin2code ?adm2Code ;
                 xyz:geonameId ?adm2Id ;
             ]
-            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm2Id, "/")) AS ?adm2Uri)
+            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm2Id, "/")) as ?adm2Uri)
         }
     }
     UNION {
@@ -64,10 +46,10 @@ WHERE {
                 fx:csv.headers true ;
             .
             [
-                xyz:admin3code ?adm3code ;
+                xyz:admin3code ?adm3Code ;
                 xyz:geonameId ?adm3Id ;
             ]
-            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm3Id, "/")) AS ?adm3Uri)
+            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm3Id, "/")) as ?adm3Uri)
         }
     }
     UNION {
@@ -77,10 +59,10 @@ WHERE {
                 fx:csv.headers true ;
             .
             [
-                xyz:admin4code ?adm4code ;
+                xyz:admin4code ?adm4Code ;
                 xyz:geonameId ?adm4Id ;
             ]
-            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm4Id, "/")) AS ?adm4Uri)
+            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm4Id, "/")) as ?adm4Uri)
         }
     }
 }
