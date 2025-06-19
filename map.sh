@@ -1,6 +1,6 @@
 #!/bin/sh
-set -e
-set -x  
+set -e # Exit immediately if any command fails
+#set -x  
 
 # Configuration
 DATA_DIR="$PWD/data"

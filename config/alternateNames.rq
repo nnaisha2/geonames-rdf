@@ -7,6 +7,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
   ?featureURI gn:alternateName ?alternateName ;
+        gn:postalCode ?postalCode ;
         gn:officialName ?officialName ;
         gn:shortName ?shortName ;
         gn:name ?preferredName ;
@@ -41,20 +42,23 @@ WHERE {
     # Language-tagged names
     BIND(IF(BOUND(?lang) && ?lang != "" && ?lang != "link", STRLANG(STR(?nameValue), ?lang), ?undef) AS ?langName)
     
+    # Postal codes (where lang = "post")
+    BIND(IF(?lang = "post", STR(?nameValue), ?undef) AS ?postalCode)
+
     # Official names
-    BIND(IF(?pref = "1" && ?lang != "link", ?langName, ?undef) AS ?officialName)
+    BIND(IF(?pref = "1" && ?lang != "link" && ?lang != "post", ?langName, ?undef) AS ?officialName)
     
     # Short names
-    BIND(IF(?short = "1", ?langName, ?undef) AS ?shortName)
-    
+    BIND(IF(?short = "1" && ?lang != "post", ?langName, ?undef) AS ?shortName)
+
     # Alternate names
-    BIND(IF((!BOUND(?pref) || ?pref != "1") && ?lang != "link", ?langName, ?undef) AS ?alternateName)
+    BIND(IF((!BOUND(?pref) || ?pref != "1") && ?lang != "link" && ?lang != "post", ?langName, ?undef) AS ?alternateName)
     
     # Preferred name
-    BIND(IF(?pref = "1", ?langName, ?undef) AS ?preferredName)
-    
+    BIND(IF(?pref = "1" && ?lang != "post", ?langName, ?undef) AS ?preferredName)
+
     # Only include records with at least one valid value
-    FILTER(BOUND(?wikipediaLink) || BOUND(?officialName) || BOUND(?shortName) || BOUND(?alternateName))
+    FILTER(BOUND(?wikipediaLink) || BOUND(?officialName) || BOUND(?shortName) || BOUND(?alternateName)||BOUND(?postalCode))
     
     # Final output bindings
     BIND(IF(BOUND(?wikipediaLink), IRI(?wikipediaLink), ?undef) AS ?wikipediaArticle)

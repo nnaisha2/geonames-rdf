@@ -10,47 +10,41 @@ ADDRESS="http://localhost:7200/repositories/$REPOSITORY_ID"
 USERNAME_WITH_PASSWORD=""  # Optional: -u user:pass
 REPOSITORY_CONFIG="$CONFIG_DIR/repository.ttl"
 
-#Downloads DE.txt, alternateNamesV2.txt, hierarchy.txt, etc.
+# Step 1: Download GeoNames data
 echo "[1/6] Running download.sh..."
 source ./download.sh
 
-#Transforms geonames_*.csv → *.csv.ttl, alternateNamesV2.txt → alternate-names.ttl, hierarchy.txt → hierarchy.ttl and Combines into output/geonames.ttl
+# Step 2: Transform data to RDF
 echo "[2/6] Running map.sh..."
 source ./map.sh
 
-#deletes the existing GraphDB repository (if it exists)
+# Step 3: Delete existing repository (if any)
 echo "[3/6] Removing '$REPOSITORY_ID' repository."
 curl -X DELETE "$ADDRESS" $USERNAME_WITH_PASSWORD || true
 
-
+# Step 4: Create new repository
 echo "[4/6] Creating '$REPOSITORY_ID' repository."
 curl -X PUT --header "Content-Type: application/x-turtle" \
   --data-binary @$REPOSITORY_CONFIG \
   "$ADDRESS" $USERNAME_WITH_PASSWORD
 
-echo "Uploading all ontology files into contexts."
-curl -X POST --header "Content-Type: application/x-turtle" --data-binary @${ontologyfile} $ADDRESS/rdf-graphs/service $USERNAME_WITH_PASSWORD --url-query "graph=$ontology_iri"
- 
+# Step 5: Upload RDF file(s) to GraphDB
+echo "[5/6] Uploading geonames.ttl to GraphDB..."
+curl -X POST --header "Content-Type: application/x-turtle" \
+  --data-binary @$OUTPUT_DIR/geonames.ttl \
+  "$ADDRESS/statements" $USERNAME_WITH_PASSWORD
 
-#loops through all .ttl files in output and Uploads each to the GraphDB store 
-echo "[5/6] Uploading RDF to GraphDB..."
-for ttlfile in $OUTPUT_DIR/*.ttl; do
-  echo "Uploading $ttlfile"
-  curl -X POST --header "Content-Type: application/x-turtle" \
-    --data-binary @$ttlfile \
-    "$ADDRESS/statements" $USERNAME_WITH_PASSWORD
-  ech
-done
 
-#Disables and re-enables the GeoSPARQL plugin
+# Step 6: Refresh GeoSPARQL plugin
 echo "[6/6] Refreshing GeoSPARQL plugin..."
 curl "$ADDRESS/statements" $USERNAME_WITH_PASSWORD --data-urlencode update='INSERT DATA { [] <http://www.ontotext.com/plugins/geosparql#enabled> "false" . } ; INSERT DATA { [] <http://www.ontotext.com/plugins/geosparql#enabled> "true" . }'
 
+# Remove empty namespace prefix
 echo "Deleting empty namespace prefix in '$REPOSITORY_ID' repository."
 curl -X DELETE --header "Content-Type: text/plain" "$ADDRESS/namespaces/" $USERNAME_WITH_PASSWORD
 
-
+# Enable autocomplete index
 echo "Enabling autocomplete index for '$REPOSITORY_ID' repository."
 curl "$ADDRESS/statements" $USERNAME_WITH_PASSWORD --data-urlencode update='INSERT DATA { _:s <http://www.ontotext.com/plugins/autocomplete#enabled> true . }'
 
-echo " RDF uploaded to $ADDRESS"
+echo "RDF uploaded to $ADDRESS"
