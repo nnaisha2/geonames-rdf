@@ -20,7 +20,7 @@ WHERE {
   # Load postal codes CSV
   SERVICE <x-sparql-anything:> {
     fx:properties
-      fx:location "data/postal-codes-DE.csv" ;
+      fx:location ?_SOURCE ;
       fx:csv.headers "true" ;
       fx:csv.delimiter "\t" ;
       fx:csv.null-string "" .

@@ -20,7 +20,6 @@ CONSTRUCT {
     gn:nearbyFeatures ?nearbyEndpoint ;
     gn:locationMap ?locationMapUri ;
     gn:parentCountry ?parentCountry ;
-    gn:alternateName ?alternatenames ;
     gn:parentADM1 ?parentAdm1 ;
     gn:parentADM2 ?parentAdm2 ;
     gn:parentADM3 ?parentAdm3 ;
@@ -53,7 +52,6 @@ WHERE {
 
     # Optional fields
     OPTIONAL { ?s xyz:feature%20code ?featureCodeString . }
-    OPTIONAL { ?s xyz:alternatenames ?alternatenames . }
     OPTIONAL { ?s xyz:elevation ?elevation . }
     OPTIONAL { ?s xyz:dem ?dem . }
     OPTIONAL { ?s xyz:timezone ?timezone . }

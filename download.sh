@@ -39,16 +39,32 @@ conditional_download() {
     fi
 }
 
-# Specify countries to download (currently only Germany)
-country_files="DE "
+country_files="${1:-DE}"  # Accept argument, default to DE
 #country_files="allCountries"  # Uncomment to download all countries
 
-echo "[process 1/15] Cleaning up previous data files..."
-rm -rf "$DATA_DIR/geonames.csv" temp 2>/dev/null
+
+
+echo "[process 0/16] Processing country: $country_files"
+
+echo "[process 1/16] Downloading countryInfo.txt for $country_files..."
+# Download countryInfo.txt with conditional check
+conditional_download "https://download.geonames.org/export/dump/countryInfo.txt" "$DOWNLOAD_DIR/countryInfo.txt"
+
+echo "[process 2/16] Validating country code: $country_files"
+if [ "$country_files" != "allCountries" ] && ! grep -q -w "^$country_files" "$DOWNLOAD_DIR/countryInfo.txt"; then
+    echo "Error: Invalid country code '$country_files'."
+    echo "Valid codes are: allCountries "
+    grep -v '^#' "$DOWNLOAD_DIR/countryInfo.txt" | awk '{print $1}' | tr '\n' ' '
+    echo
+    exit 1
+fi
+
+echo "[process 3/16] Cleaning up previous data files for $country_files..."
+rm -rf "$DATA_DIR/geonames_${country_files}.csv" temp 2>/dev/null
 
 # Download and process country files
 for cfile in $country_files; do
-    echo "[process 2/15] Processing country file: $cfile"
+    echo "[process 4/16] Processing country file: $cfile"
     conditional_download "https://download.geonames.org/export/dump/$cfile.zip" "$DOWNLOAD_DIR/$cfile.zip"
     # Ensure download succeeded
     if [ ! -f "$DOWNLOAD_DIR/$cfile.zip" ]; then
@@ -64,25 +80,22 @@ for cfile in $country_files; do
         exit 1
     fi
     mkdir -p "$DATA_DIR"
-    echo "  - Appending $cfile.txt to geonames.csv..."
-    cat "$cfile.txt" >> "$DATA_DIR/geonames.csv"
+    echo "  - Appending $cfile.txt to geonames_${country_files}.csv..."
+    cat "$cfile.txt" >> "$DATA_DIR/geonames_${country_files}.csv"
     cd ..
     rm -rf temp
 done
 
-# Create foreign keys 'adm1' and 'adm2' for the admin1code and admin2code tables
-echo "[process 3/15] Creating foreign keys for administrative divisions..."
-awk 'BEGIN{FS=OFS="\t"} {print $0, $9"."$11, ($12 != "" ? $9"."$11"."$12 : "NONE" )}' "$DATA_DIR/geonames.csv" > "$DATA_DIR/geonamesplus.csv"
-rm "$DATA_DIR/geonames.csv"
+echo "[process 5/16] Creating foreign keys for administrative divisions for $country_files..."
+awk 'BEGIN{FS=OFS="\t"} {print $0, $9"."$11, ($12 != "" ? $9"."$11"."$12 : "NONE" )}' "$DATA_DIR/geonames_${country_files}.csv" > "$DATA_DIR/geonamesplus_${country_files}.csv"
+rm "$DATA_DIR/geonames_${country_files}.csv"
 
-# Split the large file into manageable chunks
-echo "[process 4/15] Splitting data into chunks of $CHUNK_SIZE records each..."
-rm -rf "$DATA_DIR"/geonames_*
-split -l $CHUNK_SIZE "$DATA_DIR/geonamesplus.csv" "$DATA_DIR/geonames_"
+echo "[process 6/16] Splitting data into chunks of $CHUNK_SIZE records each for $country_files..."
+rm -rf "$DATA_DIR"/geonames_${country_files}_*
+split -l $CHUNK_SIZE "$DATA_DIR/geonamesplus_${country_files}.csv" "$DATA_DIR/geonames_${country_files}_"
 
-# Add header row to each chunk
-echo "[process 5/15] Adding headers to each chunk..."
-for f in "$DATA_DIR"/geonames_*; do
+echo "[process 7/16] Adding headers to each chunk for $country_files..."
+for f in "$DATA_DIR"/geonames_${country_files}_*; do
     [ -f "$f" ] || continue
     echo "  - Processing $f"
     csvfile="${f}.csv"
@@ -91,12 +104,10 @@ for f in "$DATA_DIR"/geonames_*; do
     rm "$f"
 done
 
-# Extract German geonameIDs for alternate names processing
-echo "[process 6/15] Extracting German geonameIDs for alternate names filtering..."
-awk -F'\t' 'NR>1 {print $1}' "$DATA_DIR/geonamesplus.csv" > "$DATA_DIR/geonameids_de.txt"
+echo "[process 8/16] Extracting geonameIDs for alternate names filtering for $country_files..."
+awk -F'\t' 'NR>1 {print $1}' "$DATA_DIR/geonamesplus_${country_files}.csv" > "$DATA_DIR/geonameids_${country_files}.txt"
 
-# Download and filter alternateNamesV2 for Germany
-echo "[process 7/15] Downloading and filtering alternate names data..."
+echo "[process 9/16] Downloading and filtering alternate names data for $country_files..."
 conditional_download "https://download.geonames.org/export/dump/alternateNamesV2.zip" "$DOWNLOAD_DIR/alternateNamesV2.zip"
 mkdir -p temp
 cd temp
@@ -106,17 +117,20 @@ if [ ! -f "alternateNamesV2.txt" ]; then
     echo "Error: alternateNamesV2.txt not found after unzipping!"
     exit 1
 fi
-echo "  - Filtering alternateNamesV2.txt for German geonameIDs..."
+echo "  - Filtering alternateNamesV2.txt for geonameIDs of $country_files..."
+# The awk command:
+# 1. First reads all geonameIDs for the selected country into memory (NR==FNR)
+# 2. Then processes alternateNamesV2.txt, keeping only rows where $2 (geonameid) exists in our IDs
+# 3. Ensures each output row has exactly 10 fields (some input rows might be incomplete)
 awk -F'\t' -v OFS='\t' 'NR==FNR {ids[$1]; next} $2 in ids {for(i=NF+1;i<=10;i++) $i=""; print}' \
-    "$DATA_DIR/geonameids_de.txt" alternateNamesV2.txt > "$DATA_DIR/alternateNamesV2_DE.csv"
+    "$DATA_DIR/geonameids_${country_files}.txt" alternateNamesV2.txt > "$DATA_DIR/alternateNamesV2_${country_files}.csv"
 cd ..
 rm -rf temp
 
-# Split alternate names into chunks
-echo "[process 8/15] Splitting alternate names into chunks..."
+echo "[process 10/16] Splitting alternate names into chunks for $country_files..."
 split -l $CHUNK_SIZE --numeric-suffixes=1 --additional-suffix=.csv \
-  "$DATA_DIR/alternateNamesV2_DE.csv" "$DATA_DIR/alternateNamesV2_DE_"
-for f in "$DATA_DIR"/alternateNamesV2_DE_*.csv; do
+  "$DATA_DIR/alternateNamesV2_${country_files}.csv" "$DATA_DIR/alternateNamesV2_${country_files}_"
+for f in "$DATA_DIR"/alternateNamesV2_${country_files}_*.csv; do
   [ -f "$f" ] || continue
   echo "  - Adding headers to $f"
   mv "$f" "${f%.csv}.tmp"
@@ -124,18 +138,17 @@ for f in "$DATA_DIR"/alternateNamesV2_DE_*.csv; do
   rm "${f%.csv}.tmp"
 done
 
-# Download and process supporting administrative files
-echo "[process 9/15] Downloading and processing admin1 codes..."
+echo "[process 11/16] Downloading and processing admin1 codes..."
 cp "$CONFIG_DIR/headers-admin1-codes.csv" "$DATA_DIR/admin1-codes.csv"
 conditional_download "https://download.geonames.org/export/dump/admin1CodesASCII.txt" "$DOWNLOAD_DIR/admin1CodesASCII.txt"
 cat "$DOWNLOAD_DIR/admin1CodesASCII.txt" >> "$DATA_DIR/admin1-codes.csv"
 
-echo "[process 10/15] Downloading and processing admin2 codes..."
+echo "[process 12/16] Downloading and processing admin2 codes..."
 cp "$CONFIG_DIR/headers-admin2-codes.csv" "$DATA_DIR/admin2-codes.csv"
 conditional_download "https://download.geonames.org/export/dump/admin2Codes.txt" "$DOWNLOAD_DIR/admin2Codes.txt"
 cat "$DOWNLOAD_DIR/admin2Codes.txt" >> "$DATA_DIR/admin2-codes.csv"
 
-echo "[process 11/15] Downloading and processing hierarchy data..."
+echo "[process 13/16] Downloading and processing hierarchy data for $country_files..."
 cp "$CONFIG_DIR/headers-hierarchy.csv" "$DATA_DIR/hierarchy.csv"
 conditional_download "https://download.geonames.org/export/dump/hierarchy.zip" "$DOWNLOAD_DIR/hierarchy.zip"
 mkdir -p temp
@@ -150,35 +163,33 @@ cat hierarchy.txt >> "$DATA_DIR/hierarchy.csv"
 cd ..
 rm -rf temp
 
-echo "[process 12/15] Downloading and processing postal code data for Germany..."
-cp "$CONFIG_DIR/headers-PostalCode.csv" "$DATA_DIR/postal-codes-DE.csv"
-conditional_download "https://download.geonames.org/export/zip/DE.zip" "$DOWNLOAD_DIR/postal-codes-DE.zip"
+echo "[process 14/16] Downloading and processing postal code data for $country_files..."
+cp "$CONFIG_DIR/headers-PostalCode.csv" "$DATA_DIR/postal-codes-${country_files}.csv"
+conditional_download "https://download.geonames.org/export/zip/${country_files}.zip" "$DOWNLOAD_DIR/postal-codes-${country_files}.zip"
 mkdir -p temp
 cd temp
-echo "    - Unzipping postal-codes-DE.zip..."
-unzip -qo "$DOWNLOAD_DIR/postal-codes-DE.zip" DE.txt
-if [ ! -f "DE.txt" ]; then
-    echo "Error: DE.txt not found after unzipping!"
+echo "    - Unzipping postal-codes-${country_files}.zip..."
+unzip -qo "$DOWNLOAD_DIR/postal-codes-${country_files}.zip" ${country_files}.txt
+if [ ! -f "${country_files}.txt" ]; then
+    echo "Error: ${country_files}.txt not found after unzipping!"
     exit 1
 fi
-cat DE.txt >> "$DATA_DIR/postal-codes-DE.csv"
+cat ${country_files}.txt >> "$DATA_DIR/postal-codes-${country_files}.csv"
 cd ..
 rm -rf temp
 
-# Create admin3 and admin4 codes from geonames data
-echo "[process 13/15] Generating admin3 and admin4 codes..."
-awk -F'\t' '($7=="A" && $8=="ADM3") {print $9 "." $11 "." $12 "." $13 "\t" $2 "\t" $3 "\t" $1}' "$DATA_DIR/geonamesplus.csv" > "$DATA_DIR/admin3-codes.txt"
-awk -F'\t' '($7=="A" && $8=="ADM4") {print $9 "." $11 "." $12 "." $13 "." $14 "\t" $2 "\t" $3 "\t" $1}' "$DATA_DIR/geonamesplus.csv" > "$DATA_DIR/admin4-codes.txt"
+echo "[process 15/16] Generating admin3 and admin4 codes for $country_files..."
+awk -F'\t' '($7=="A" && $8=="ADM3") {print $9 "." $11 "." $12 "." $13 "\t" $2 "\t" $3 "\t" $1}' "$DATA_DIR/geonamesplus_${country_files}.csv" > "$DATA_DIR/admin3-codes.txt"
+awk -F'\t' '($7=="A" && $8=="ADM4") {print $9 "." $11 "." $12 "." $13 "." $14 "\t" $2 "\t" $3 "\t" $1}' "$DATA_DIR/geonamesplus_${country_files}.csv" > "$DATA_DIR/admin4-codes.txt"
 
-echo "[process 14/15] Adding headers to admin3/admin4 files..."
+echo "[process 16/16] Adding headers to admin3/admin4 files and extracting country information for $country_files..."
 printf "admin3code\tname\tasciiname\tgeonameId\n" | cat - "$DATA_DIR/admin3-codes.txt" > "$DATA_DIR/admin3-codes.csv"
 printf "admin4code\tname\tasciiname\tgeonameId\n" | cat - "$DATA_DIR/admin4-codes.txt" > "$DATA_DIR/admin4-codes.csv"
 rm "$DATA_DIR/admin3-codes.txt" "$DATA_DIR/admin4-codes.txt"
 
 # Extract country information (feature class "A" and code "PCLI")
-echo "[process 15/15] Extracting country information..."
-awk -F'\t' '($7=="A" && $8=="PCLI"){print $1 "\t" $9 "\t" $2}' "$DATA_DIR/geonamesplus.csv" > "$DATA_DIR/country-codes.txt"
+awk -F'\t' '($7=="A" && $8=="PCLI"){print $1 "\t" $9 "\t" $2}' "$DATA_DIR/geonamesplus_${country_files}.csv" > "$DATA_DIR/country-codes.txt"
 printf "countryId\tcountryCode\tname\n" | cat - "$DATA_DIR/country-codes.txt" > "$DATA_DIR/country-codes.csv"
 rm "$DATA_DIR/country-codes.txt"
 
-echo "Geonames data processing complete! All files are ready in $DATA_DIR"
+echo "Geonames data processing complete for $country_files! All files are ready in $DATA_DIR"

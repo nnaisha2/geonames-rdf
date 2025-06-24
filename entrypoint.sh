@@ -1,17 +1,24 @@
 #!/bin/bash
 set -e # Exit immediately if any command fails
 
+# Configuration
 DATA_DIR="$PWD/data"
 OUTPUT_DIR="$PWD/output"
 BIN_DIR="$PWD/bin"
 CONFIG_DIR="$PWD/config"
 
+COUNTRY_CODE="${1:-DE}"  # Accept country code as argument, default to DE
+
 # Step 1: Download GeoNames data
-echo "[1/2] Running download.sh..."
-source ./download.sh
+echo "[1/3] Running download.sh for country code: $COUNTRY_CODE ..."
+source ./download.sh "$COUNTRY_CODE"
 
 # Step 2: Transform data to RDF
-echo "[2/2] Running map.sh..."
-source ./map.sh
+echo "[2/3] Running map.sh for country code: $COUNTRY_CODE ..."
+source ./map.sh "$COUNTRY_CODE"
 
-echo "Data preparation complete. RDF file should be at $OUTPUT_DIR/geonames.ttl"
+# Step 3: Upload RDF to GraphDB
+echo "[3/3] Running upload_to_graphdb.sh for country code: $COUNTRY_CODE ..."
+source ./upload_to_graphdb.sh "$COUNTRY_CODE"
+
+echo "Data preparation and upload complete. RDF file should be at $OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl and loaded into GraphDB."
