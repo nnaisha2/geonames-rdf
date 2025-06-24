@@ -15,8 +15,8 @@ CONSTRUCT {
     gn:featureClass ?featureClass ;
     gn:featureCode ?featureCode ;
     gn:population ?population ;
-    wgs84_pos:lat ?latitudeFloat ;
-    wgs84_pos:long ?longitudeFloat ;
+    wgs84_pos:lat ?latitudeDecimal ;
+    wgs84_pos:long ?longitudeDecimal ;
     gn:nearbyFeatures ?nearbyEndpoint ;
     gn:locationMap ?locationMapUri ;
     gn:parentCountry ?parentCountry ;
@@ -73,8 +73,8 @@ WHERE {
          ""
       ) AS ?featureCode
     )
-    BIND(xsd:float(?latitude) AS ?latitudeFloat)
-    BIND(xsd:float(?longitude) AS ?longitudeFloat)
+    BIND(xsd:decimal(?latitude) AS ?latitudeDecimal)
+    BIND(xsd:decimal(?longitude) AS ?longitudeDecimal)
     BIND(URI("https://sws.geonames.org/2921044/") AS ?parentCountry)
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/nearby.rdf")) AS ?nearbyEndpoint)
     BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", ENCODE_FOR_URI(REPLACE(LCASE(?asciiname), " ", "-")), ".html")) AS ?locationMapUri)

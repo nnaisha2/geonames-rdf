@@ -71,11 +71,19 @@ that you can load into a SPARQL server.
 
 ## Loading into GraphDB
 
-### Automated Loading with `entrypoint.sh`
+### **Two-Step Automated Loading**
 
-To automate repository creation, data loading, and plugin configuration in GraphDB, use:
-
-
+1. **Prepare the data**  
+- Run:
 ```shell
 ./entrypoint.sh
 ```
+This downloads and transforms the GeoNames data.
+
+2. **Upload to GraphDB**  
+- Run:
+```shell
+./upload_to_graphdb.sh
+```
+
+This deletes any existing repository, creates a new one, uploads the RDF, and configures plugins.
