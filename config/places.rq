@@ -73,7 +73,6 @@ WHERE {
     )
     BIND(xsd:decimal(?latitude) AS ?latitudeDecimal)
     BIND(xsd:decimal(?longitude) AS ?longitudeDecimal)
-    BIND(URI("https://sws.geonames.org/2921044/") AS ?parentCountry)
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/nearby.rdf")) AS ?nearbyEndpoint)
     BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", ENCODE_FOR_URI(REPLACE(LCASE(?asciiname), " ", "-")), ".html")) AS ?locationMapUri)
 
@@ -92,8 +91,25 @@ WHERE {
     )
   }
 
-  # --- Efficient admin code lookups using loaded admin-codes.ttl ---
-  # Only emit triple if matching admin code is present and not self-parenting.
+  # --- Loading country codes---
+  {
+    SELECT ?countryCode ?countryUri
+    WHERE {
+      SERVICE <x-sparql-anything:> {
+        fx:properties fx:location "data/country-codes.csv" ;
+                      fx:csv.headers "true" ;
+                      fx:csv.delimiter "\t" .
+        ?row xyz:countryId ?countryId ;
+             xyz:countryCode ?countryCode ;
+             xyz:name ?countryName .
+        BIND(URI(CONCAT("https://sws.geonames.org/", ?countryId, "/")) AS ?countryUri)
+      }
+    }
+  }
+
+  # --- Join by country code ---
+  FILTER(?countryCode != "")
+  BIND(?countryUri AS ?parentCountry)
 
   OPTIONAL {
     FILTER(BOUND(?adm1FullCode) && ?adm1FullCode != "")

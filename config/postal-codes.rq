@@ -7,7 +7,10 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 CONSTRUCT {
   ?featureURI
     gn:postalCode ?postalCode ;
-    gn:hasPostalCode ?postalCodeURI ;
+    gn:hasPostalCode ?postalCodeURI .
+
+  # Postal code URI gets descriptive metadata
+  ?postalCodeURI
     gn:admin1Name ?admin1Name ;
     gn:admin1Code ?admin1Code ;
     gn:admin2Name ?admin2Name ;
@@ -23,25 +26,57 @@ WHERE {
       fx:location ?_SOURCE ;
       fx:csv.headers "true" ;
       fx:csv.delimiter "\t" ;
-      fx:csv.null-string "" .
+      fx:null-string "" .
 
     ?row
       xyz:postal%20code ?postalCode ;
       xyz:country%20code ?countryCode ;
       xyz:place%20name ?placeName ;
       xyz:admin%20name1 ?admin1Name ;
-      xyz:admin%20code1 ?admin1Code ;
-      xyz:admin%20name3 ?municipalityName ;
-      xyz:admin%20code3 ?admin3Code .
-      OPTIONAL { ?row xyz:admin%20name2 ?admin2Name . }
-      OPTIONAL { ?row xyz:admin%20code2 ?admin2Code . }
-      OPTIONAL { ?row xyz:accuracy ?accuracy . }
+      xyz:admin%20code1 ?admin1Code .
+    OPTIONAL { ?row xyz:admin%20name2 ?admin2Name . }
+    OPTIONAL { ?row xyz:admin%20code2 ?admin2Code . }
+    OPTIONAL { ?row xyz:admin%20name3 ?municipalityName . }
+    OPTIONAL { ?row xyz:accuracy ?accuracy . }
+    OPTIONAL { ?row xyz:admin%20code3 ?admin3Code . }
   }
 
-  # Join with admin-codes.ttl 
-  ?featureURI gn:admin3Code ?admin3CodeTTL .
-  FILTER(STRENDS(?admin3CodeTTL, CONCAT(".", ?admin3Code)))
+  # Feature URIs per admin level
+  OPTIONAL {
+    ?featureURI_admin3 gn:admin3Code ?admin3CodeTTL .
+    FILTER(STRENDS(?admin3CodeTTL, CONCAT(".", ?admin3Code)))
+  }
 
-  # Postal code URI
+  OPTIONAL {
+    FILTER(!BOUND(?featureURI_admin3))
+    ?featureURI_admin2 gn:admin2Code ?admin2CodeTTL .
+    FILTER(?admin2CodeTTL = ?admin2Code)
+  }
+
+  OPTIONAL {
+    FILTER(!BOUND(?featureURI_admin3) && !BOUND(?featureURI_admin2))
+    ?featureURI_admin1 gn:admin1Code ?admin1CodeTTL .
+    FILTER(?admin1CodeTTL = ?admin1Code)
+  }
+
+  OPTIONAL {
+    FILTER(!BOUND(?featureURI_admin3) && !BOUND(?featureURI_admin2) && !BOUND(?featureURI_admin1))
+    ?featureURI_country gn:countryCode ?countryCode .
+  }
+
+  #Pick the first non-null feature URI
+  BIND(
+  COALESCE(?featureURI_admin3, ?featureURI_admin2, ?featureURI_admin1, ?featureURI_country)
+  AS ?featureURI
+)
+
+
+  # Filter out POI place names
+  FILTER(
+  !REGEX(?placeName, "Bank|Sparkasse|AOK|Center|GmbH|AG|Versand|Logistik|Dienstleist|Verwaltung|Institut|Technik|Park|Campus|Depot|Bau|Gewerbe|Distribution|Service|Media|Universit|Academy|School|Apotheke|College|Versicherung|Klinik|Krankenhaus|Finanz|Behörde|Ministerium|Stiftung|Konzern|Holding|Stadtwerke|Energie|Telekom|Post|Zentrale|Hauptverwaltung|Hauptsitz|Zulassungsstelle|Forschung|Labor|Industrie|Entsorgung|Rechenzentrum|Verband|Genossenschaft|Landesamt|Landratsamt|Landtag|Landgericht|Amtsgericht|Finanzamt|Polizei|Feuerwehr|Bürgeramt|Jobcenter|Agentur für Arbeit|Arbeitsagentur|Botschaft|Konsulat|Zoll|Justiz|Staatsanwaltschaft|Rathaus|Senat|Landesbetrieb|Bürgerbüro", "i")
+)
+
+
+  # Generate postal code URI 
   BIND(IRI(CONCAT("https://sws.geonames.org/postal/", ?countryCode, "/", ?postalCode)) AS ?postalCodeURI)
 }

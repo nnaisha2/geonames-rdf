@@ -7,13 +7,12 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT {
   ?featureURI gn:alternateName ?alternateName ;
-        gn:postalCode ?postalCode ;
-        gn:officialName ?officialName ;
-        gn:shortName ?shortName ;
-        rdfs:label ?preferredName ;
-        gn:wikipediaArticle ?wikipediaArticle ;
-        rdfs:seeAlso ?dbpediaResource ;
-
+              gn:postalCode ?postalCode ;
+              gn:officialName ?officialName ;
+              gn:shortName ?shortName ;
+              rdfs:label ?preferredName ;
+              gn:wikipediaArticle ?wikipediaArticle ;
+              rdfs:seeAlso ?dbpediaResource .
 }
 WHERE {
   SERVICE <x-sparql-anything:> {
@@ -22,44 +21,101 @@ WHERE {
       fx:csv.headers "true" ;
       fx:csv.delimiter "\t" ;
       fx:csv.null-string "" .
-   
+
     ?row xyz:geonameid ?geonameid ;
          xyz:alternateName ?nameValue .
-    
-    OPTIONAL { ?row xyz:isolanguage ?lang }
-    OPTIONAL { ?row xyz:isPreferredName ?pref }
-    OPTIONAL { ?row xyz:isShortName ?short }
 
-    BIND(IRI(CONCAT("https://sws.geonames.org/", ?geonameid, "/")) AS ?featureURI)
-    
-    # Wikipedia links
-    BIND(IF(?lang = "link" && STRSTARTS(?nameValue, "http"), ?nameValue, ?undef) AS ?wikipediaLink)
-    
-    # DBpedia seeAlso link
-    BIND(IF(BOUND(?wikipediaLink), IRI(CONCAT("https://dbpedia.org/resource/", IF(CONTAINS(REPLACE(STR(?wikipediaLink), "^https?://[a-z\\-]+\\.wikipedia\\.org/wiki/", ""), "%"), REPLACE(STR(?wikipediaLink), "^https?://[a-z\\-]+\\.wikipedia\\.org/wiki/", ""), ENCODE_FOR_URI(REPLACE(STR(?wikipediaLink), "^https?://[a-z\\-]+\\.wikipedia\\.org/wiki/", ""))))), 1/0) AS ?dbpediaResource)
+    ### SAFE DATA EXTRACTION (handles empty/missing fields)
+    OPTIONAL { 
+      ?row xyz:isolanguage ?langRaw .
+      FILTER(STR(?langRaw))  # Skip empty values
+      BIND(STR(?langRaw) AS ?lang)  # Force string type
+    }
+    OPTIONAL { 
+      ?row xyz:isPreferredName ?prefRaw .
+      FILTER(STR(?prefRaw))
+      BIND(STR(?prefRaw) AS ?pref)
+    }
+    OPTIONAL { 
+      ?row xyz:isShortName ?shortRaw .
+      FILTER(STR(?shortRaw))
+      BIND(STR(?shortRaw) AS ?short)
+    }
 
-    # Language-tagged names
-    BIND(IF(BOUND(?lang) && ?lang != "" && ?lang != "link", STRLANG(STR(?nameValue), ?lang), ?undef) AS ?langName)
-    
-    # Postal codes (where lang = "post")
-    BIND(IF(?lang = "post", STR(?nameValue), ?undef) AS ?postalCode)
+    ### CORE PROCESSING (type-safe)
+    BIND(IRI(CONCAT("https://sws.geonames.org/", STR(?geonameid), "/")) AS ?featureURI)
 
-    # Official names
-    BIND(IF(?pref = "1" && ?lang != "link" && ?lang != "post", ?langName, ?undef) AS ?officialName)
-    
-    # Short names
-    BIND(IF(?short = "1", IF(BOUND(?lang) && ?lang != "" && ?lang != "link" && ?lang != "post", STRLANG(STR(?nameValue), ?lang), STR(?nameValue)), ?undef) AS ?shortName)
+    # 1. Wikipedia Articles (lang="link")
+    BIND(
+      IF(BOUND(?lang) && ?lang = "link" && STRSTARTS(STR(?nameValue), "http"),
+        IRI(STR(?nameValue)),  # Force string type before IRI()
+        ?undef
+      ) AS ?wikipediaArticle
+    )
 
-    # Alternate names
-    BIND(IF((!BOUND(?pref) || ?pref != "1") && ?lang != "link" && ?lang != "post", ?langName, ?undef) AS ?alternateName)
-    
-    # Preferred name
-    BIND(IF(?pref = "1" && ?lang != "post", STR(?nameValue), ?undef) AS ?preferredName)
+    # 2. DBpedia Resources (derived from Wikipedia URLs)
+    BIND(
+      IF(BOUND(?wikipediaArticle),
+        IRI(CONCAT(
+          "https://dbpedia.org/resource/",
+          ENCODE_FOR_URI(
+            REPLACE(
+              STR(?wikipediaArticle),
+              "^https?://[a-z-]+\\.wikipedia\\.org/wiki/", ""
+            )
+          )
+        )),
+        ?undef
+      ) AS ?dbpediaResource
+    )
 
-    # Only include records with at least one valid value
-    FILTER(BOUND(?wikipediaLink) || BOUND(?officialName) || BOUND(?shortName) || BOUND(?alternateName) || BOUND(?postalCode) || (?short = "1"))
-    
-    # Final output bindings
-    BIND(IF(BOUND(?wikipediaLink), IRI(?wikipediaLink), ?undef) AS ?wikipediaArticle)
+    # 3. Language-Tagged Names (skip invalid lang codes)
+    BIND(
+      IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+        STRLANG(STR(?nameValue), ?lang),
+        ?undef
+      ) AS ?alternateName
+    )
+
+    # 4. Postal Codes (lang="post")
+    BIND(
+      IF(BOUND(?lang) && ?lang = "post", 
+        STR(?nameValue), 
+        ?undef
+      ) AS ?postalCode
+    )
+
+    # 5. Official Names (preferred + language-tagged)
+    BIND(
+      IF(BOUND(?pref) && ?pref = "1" && BOUND(?alternateName),
+        ?alternateName,  # Reuse language-tagged version
+        ?undef
+      ) AS ?officialName
+    )
+
+    # 6. Short Names (isShortName=1)
+    BIND(
+      IF(BOUND(?short) && ?short = "1",
+        IF(BOUND(?alternateName), ?alternateName, STR(?nameValue)),
+        ?undef
+      ) AS ?shortName
+    )
+
+    # 7. Preferred Names (preferred but untagged)
+    BIND(
+      IF(BOUND(?pref) && ?pref = "1" && !BOUND(?alternateName),
+        STR(?nameValue),
+        ?undef
+      ) AS ?preferredName
+    )
+
+    ### FINAL FILTER (only keep rows with valid data)
+    FILTER(
+      BOUND(?wikipediaArticle) ||
+      BOUND(?alternateName) ||
+      BOUND(?postalCode) ||
+      BOUND(?officialName) ||
+      BOUND(?shortName)
+    )
   }
 }
