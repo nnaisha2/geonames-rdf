@@ -10,7 +10,6 @@ CONSTRUCT {
               gn:postalCode ?postalCode ;
               gn:officialName ?officialName ;
               gn:shortName ?shortName ;
-              rdfs:label ?preferredName ;
               gn:wikipediaArticle ?wikipediaArticle ;
               rdfs:seeAlso ?dbpediaResource .
 }
@@ -25,51 +24,44 @@ WHERE {
     ?row xyz:geonameid ?geonameid ;
          xyz:alternateName ?nameValue .
 
-    ### SAFE DATA EXTRACTION (handles empty/missing fields)
-    OPTIONAL { 
-      ?row xyz:isolanguage ?langRaw .
-      FILTER(STR(?langRaw))  # Skip empty values
-      BIND(STR(?langRaw) AS ?lang)  # Force string type
-    }
-    OPTIONAL { 
-      ?row xyz:isPreferredName ?prefRaw .
-      FILTER(STR(?prefRaw))
-      BIND(STR(?prefRaw) AS ?pref)
-    }
-    OPTIONAL { 
-      ?row xyz:isShortName ?shortRaw .
-      FILTER(STR(?shortRaw))
-      BIND(STR(?shortRaw) AS ?short)
-    }
+    OPTIONAL { ?row xyz:isolanguage ?langRaw . FILTER(STR(?langRaw)) BIND(STR(?langRaw) AS ?lang) }
+    OPTIONAL { ?row xyz:isPreferredName ?prefRaw . FILTER(STR(?prefRaw)) BIND(STR(?prefRaw) AS ?pref) }
+    OPTIONAL { ?row xyz:isShortName ?shortRaw . FILTER(STR(?shortRaw)) BIND(STR(?shortRaw) AS ?short) }
 
-    ### CORE PROCESSING (type-safe)
     BIND(IRI(CONCAT("https://sws.geonames.org/", STR(?geonameid), "/")) AS ?featureURI)
 
-    # 1. Wikipedia Articles (lang="link")
+    # Wikipedia Article (lang="link")
     BIND(
       IF(BOUND(?lang) && ?lang = "link" && STRSTARTS(STR(?nameValue), "http"),
-        IRI(STR(?nameValue)),  # Force string type before IRI()
+        IRI(STR(?nameValue)),
         ?undef
       ) AS ?wikipediaArticle
     )
 
-    # 2. DBpedia Resources (derived from Wikipedia URLs)
+
+    # DBpedia Resource (from Wikipedia)
+    # 
+    # - DBpedia expects percent-encoded URIs for non-ASCII characters.
+    # - GeoNames Wikipedia links are usually already encoded, but not always.
+    # - This logic:
+    #    * If the Wikipedia article title contains '%', assume it's already encoded and use as-is.
+    #    * Otherwise, encode it for URI safety.
+    # - This avoids double-encoding and ensures Unicode is encoded.
+    
     BIND(
       IF(BOUND(?wikipediaArticle),
         IRI(CONCAT(
           "https://dbpedia.org/resource/",
-          ENCODE_FOR_URI(
-            REPLACE(
-              STR(?wikipediaArticle),
-              "^https?://[a-z-]+\\.wikipedia\\.org/wiki/", ""
-            )
+          IF(CONTAINS(STR(?wikipediaArticle), "%"),
+             REPLACE(STR(?wikipediaArticle), "^https?://[a-z-]+\\.wikipedia\\.org/wiki/", ""),
+             ENCODE_FOR_URI(REPLACE(STR(?wikipediaArticle), "^https?://[a-z-]+\\.wikipedia\\.org/wiki/", ""))
           )
         )),
         ?undef
       ) AS ?dbpediaResource
     )
 
-    # 3. Language-Tagged Names (skip invalid lang codes)
+    # Language-tagged alternate names
     BIND(
       IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
         STRLANG(STR(?nameValue), ?lang),
@@ -77,7 +69,7 @@ WHERE {
       ) AS ?alternateName
     )
 
-    # 4. Postal Codes (lang="post")
+    # Postal Codes (lang="post")
     BIND(
       IF(BOUND(?lang) && ?lang = "post", 
         STR(?nameValue), 
@@ -85,37 +77,20 @@ WHERE {
       ) AS ?postalCode
     )
 
-    # 5. Official Names (preferred + language-tagged)
+    # Official Names (preferred + language-tagged)
     BIND(
       IF(BOUND(?pref) && ?pref = "1" && BOUND(?alternateName),
-        ?alternateName,  # Reuse language-tagged version
+        ?alternateName,
         ?undef
       ) AS ?officialName
     )
 
-    # 6. Short Names (isShortName=1)
+    # Short Names (isShortName=1)
     BIND(
       IF(BOUND(?short) && ?short = "1",
         IF(BOUND(?alternateName), ?alternateName, STR(?nameValue)),
         ?undef
       ) AS ?shortName
-    )
-
-    # 7. Preferred Names (preferred but untagged)
-    BIND(
-      IF(BOUND(?pref) && ?pref = "1" && !BOUND(?alternateName),
-        STR(?nameValue),
-        ?undef
-      ) AS ?preferredName
-    )
-
-    ### FINAL FILTER (only keep rows with valid data)
-    FILTER(
-      BOUND(?wikipediaArticle) ||
-      BOUND(?alternateName) ||
-      BOUND(?postalCode) ||
-      BOUND(?officialName) ||
-      BOUND(?shortName)
     )
   }
 }

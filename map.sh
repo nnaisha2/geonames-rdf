@@ -12,11 +12,11 @@ OUTPUT_DIR="$PWD/output"
 SPARQL_ANYTHING_JAR="sparql-anything-v1.0.0.jar"
 
 # Create directories
-echo "[transform 1/9] Creating output and bin directories for $COUNTRY_CODE..."
+echo "[transform 1/7] Creating output and bin directories for $COUNTRY_CODE..."
 mkdir -p "$OUTPUT_DIR" "$BIN_DIR"
 
 # Download SPARQL Anything if needed
-echo "[transform 2/9] Checking for SPARQL Anything JAR..."
+echo "[transform 2/7] Checking for SPARQL Anything JAR..."
 if [ ! -f "$BIN_DIR/$SPARQL_ANYTHING_JAR" ]; then
     echo "  - Downloading SPARQL Anything..."
     curl -sSL "https://github.com/SPARQL-Anything/sparql.anything/releases/download/v1.0.0/${SPARQL_ANYTHING_JAR}" \
@@ -24,31 +24,25 @@ if [ ! -f "$BIN_DIR/$SPARQL_ANYTHING_JAR" ]; then
 fi
 
 # Process admin codes (all levels)
-echo "[transform 3/9] Processing admin codes for $COUNTRY_CODE..."
+echo "[transform 3/7] Processing admin codes for $COUNTRY_CODE..."
 java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
     --query "$CONFIG_DIR/admin-codes.rq" \
     --output "$DATA_DIR/admin-codes.ttl"
 
-# Process hierarchy
-echo "[transform 4/9] Processing hierarchy for $COUNTRY_CODE..."
-java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
-    --query "$CONFIG_DIR/hierarchy.rq" \
-    --output "$DATA_DIR/hierarchy.ttl"
 
 # Process places with all dependencies
-echo "[transform 5/9] Processing places for $COUNTRY_CODE..."
+echo "[transform 4/7] Processing places for $COUNTRY_CODE..."
 for f in "$DATA_DIR"/geonames_${COUNTRY_CODE}_*.csv; do
     echo "  - Processing $f..."
     java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
         --query "$CONFIG_DIR/places.rq" \
         -v "SOURCE=$f" \
         --load "$DATA_DIR/admin-codes.ttl" \
-        --load "$DATA_DIR/hierarchy.ttl" \
         --output "$f.ttl"
 done
 
 # Process alternate names with all features
-echo "[transform 6/9] Processing alternate names for $COUNTRY_CODE..."
+echo "[transform 5/7] Processing alternate names for $COUNTRY_CODE..."
 for f in "$DATA_DIR"/alternateNamesV2_${COUNTRY_CODE}_*.csv; do
     echo "  - Processing $f..."
     java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
@@ -58,25 +52,14 @@ for f in "$DATA_DIR"/alternateNamesV2_${COUNTRY_CODE}_*.csv; do
         --output "$f.ttl"
 done
 
-# Process postal codes
-echo "[transform 7/9] Processing postal codes for $COUNTRY_CODE..."
-java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
-    --query "$CONFIG_DIR/postal-codes.rq" \
-    -v "SOURCE=$DATA_DIR/postal-codes-${COUNTRY_CODE}.csv" \
-    --load "$DATA_DIR/admin-codes.ttl" \
-    --output "$DATA_DIR/postal-codes-${COUNTRY_CODE}.ttl"
-
-
 # Final merge with proper ordering
-echo "[transform 8/9] Merging outputs for $COUNTRY_CODE..."
+echo "[transform 6/7] Merging outputs for $COUNTRY_CODE..."
 cat "$DATA_DIR"/geonames_${COUNTRY_CODE}_*.csv.ttl \
     "$DATA_DIR"/alternateNamesV2_${COUNTRY_CODE}_*.csv.ttl \
-    "$DATA_DIR"/admin-codes.ttl \
-    "$DATA_DIR"/hierarchy.ttl \
-    "$DATA_DIR"/postal-codes-${COUNTRY_CODE}.ttl > "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl"
+    "$DATA_DIR"/admin-codes.ttl > "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl"
 
 # Optimize output format
-echo "[transform 9/9] Optimizing output format for $COUNTRY_CODE..."
+echo "[transform 7/7] Optimizing output format for $COUNTRY_CODE..."
 java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
     --query "$CONFIG_DIR/consolidate.rq" \
     --load "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl" \
