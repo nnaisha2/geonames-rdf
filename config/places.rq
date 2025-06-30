@@ -5,8 +5,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX cc: <http://creativecommons.org/ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 
 CONSTRUCT {
+  # --- Feature triples ---
   ?uri a gn:Feature ;
     gn:name ?name ;
     rdfs:isDefinedBy ?definitionDoc ;
@@ -26,8 +29,16 @@ CONSTRUCT {
     gn:parentADM4 ?parentAdm4 ;
     gn:elevation ?elevation ;
     gn:dem ?dem ;
-    gn:timezone ?timezone ;
-    gn:modificationDate ?modDate .
+    gn:timezone ?timezone .
+
+  # --- Document triples ---
+  ?definitionDoc a foaf:Document ;
+    foaf:primaryTopic ?uri ;
+    cc:license <https://creativecommons.org/licenses/by/4.0/> ;
+    cc:attributionURL <https://www.geonames.org> ;
+    cc:attributionName "GeoNames"^^xsd:string ;
+    dcterms:modified ?modDate .
+    # dcterms:created ?createdDate .
 }
 WHERE {
   SERVICE <x-sparql-anything:> {
@@ -55,7 +66,7 @@ WHERE {
     OPTIONAL { ?s xyz:elevation ?elevation . }
     OPTIONAL { ?s xyz:dem ?dem . }
     OPTIONAL { ?s xyz:timezone ?timezone . }
-    OPTIONAL { ?s xyz:modification%20date ?modDate . }
+    OPTIONAL { ?s xyz:modification%20date ?modDateRaw . }
     OPTIONAL { ?s xyz:adm1 ?adm1FullCode . }
     OPTIONAL { ?s xyz:adm2 ?adm2FullCode . }
     OPTIONAL { ?s xyz:admin3%20code ?admin3LocalCode . }
@@ -75,6 +86,8 @@ WHERE {
     BIND(xsd:decimal(?longitude) AS ?longitudeDecimal)
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/nearby.rdf")) AS ?nearbyEndpoint)
     BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", ENCODE_FOR_URI(REPLACE(LCASE(?asciiname), " ", "-")), ".html")) AS ?locationMapUri)
+    OPTIONAL { ?s xyz:modification%20date ?modDateRaw . }
+    BIND(xsd:date(?modDateRaw) AS ?modDate)
 
     # Admin code string construction for ADM3/ADM4
     BIND(

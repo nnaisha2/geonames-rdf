@@ -1,9 +1,19 @@
 PREFIX gn: <https://www.geonames.org/ontology#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
 CONSTRUCT {
   ?uri ?p ?o .
+  ?doc ?dp ?dv .
 }
 WHERE {
-  ?uri a gn:Feature ;
-       ?p ?o .
+  {
+    ?uri a gn:Feature ;
+         ?p ?o .
+  }
+  UNION
+  {
+    ?doc a foaf:Document ;
+         ?dp ?dv .
+  }
 }
-ORDER BY ?uri  
+ORDER BY ?uri
