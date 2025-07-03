@@ -6,7 +6,20 @@ resulting in a `geonames_COUNTRYCODE.ttl` file that you can load into a SPARQL s
 
 You can download a periodically updated RDF file from http://geonames.ams3.digitaloceanspaces.com/geonames.zip (420 MB).
 
----
+## Table of Contents
+
+- [Prerequisites](#prerequisites)  
+- [Running](#running)  
+  - [Specifying a Country Code](#specifying-a-country-code)  
+  - [Note on Processing allCountries](#note-on-processing-allcountries)  
+  - [Running in Docker (Single Container)](#running-in-docker-single-container)  
+  - [Running with Docker Compose (Multi-Container)](#running-with-docker-compose-multi-container)  
+  - [Running Directly on Host](#running-directly-on-host)  
+- [Output](#output)  
+- [Loading into GraphDB](#loading-into-graphdb)  
+  - [Automated Loading](#automated-loading)  
+  - [Manual Upload](#manual-upload)  
+- [Disclaimer](#disclaimer)  
 
 ## Prerequisites
 
@@ -30,7 +43,7 @@ java -Xmx8g -jar $BIN_DIR/$SPARQL_ANYTHING_JAR --query "$CONFIG_DIR/alternateNam
 
 ## Running
 
-You can run the transform process in a Docker container or directly on your host machine.
+You can run the transform process in a Docker container, with Docker Compose, or directly on your host machine.
 
 ### Specifying a Country Code
 
@@ -68,23 +81,40 @@ export JAVA_TOOL_OPTIONS="-Xmx16g"
 ./entrypoint.sh allCountries
 ```
 
----
+### Running in Docker (Single Container)
 
-### In Docker
+To run the **transform process** in a Docker container:
 
-To run the transform process in a Docker container, run:
-
+1. Build the Docker image locally 
+```bash
+docker build -t geonames-rdf .
 ```
-docker run -v $(pwd)/output:/output --rm ghcr.io/netwerk-digitaal-erfgoed/geonames-rdf
-```
-
-For large datasets or `allCountries`, increase Java heap size (recommended):
-
-```shell
-docker run -v $(pwd)/output:/output -e JAVA_TOOL_OPTIONS="-Xmx8g" --rm ghcr.io/netwerk-digitaal-erfgoed/geonames-rdf
+2. Run the transform process
+```bash
+docker run -v $(pwd)/output:/output --rm geonames-rdf
 ```
 
-### Directly
+
+For large datasets or `allCountries`, increase Java heap size:
+
+```bash
+docker run -v $(pwd)/output:/output -e JAVA_TOOL_OPTIONS="-Xmx8g" --rm geonames-rdf
+```
+
+### Running with Docker Compose (Multi-Container)
+
+If you want to run both GraphDB and the GeoNames RDF pipeline together, use the provided `docker-compose.yml`:
+
+```bash
+docker compose up --build
+```
+- This command builds the GeoNames RDF pipeline image locally from the Dockerfile.
+- This will start both the GraphDB database and the geonames-rdf pipeline, handling networking and data volumes automatically.
+- After processing, access GraphDB at [http://localhost:7200](http://localhost:7200).
+- Find the processed RDF output in the `output` folder.
+
+
+### Running Directly on Host
 
 To run the scripts directly, run:
 
@@ -98,16 +128,13 @@ Replace `DE` with your desired country code, or use `allCountries` for the full 
 
 This will download SPARQL Anything if not already available.
 
----
-
 ## Output
 
-After running the transform process, you’ll find an `output/geonames_COUNTRYCODE.ttl` file 
-that you can load into a SPARQL server. For example: `output/geonames_DE.ttl` for Germany.
+After running the transform process, you’ll find an `output/geonames_COUNTRYCODE.ttl` file that you can load into a SPARQL server. For example: `output/geonames_DE.ttl` for Germany.
 
 ## Loading into GraphDB
 
-### **Automated Loading**
+### Automated Loading
 
 Just run:
 
@@ -115,16 +142,11 @@ Just run:
 ./entrypoint.sh DE
 ```
 
-Replace `DE` with your desired country code.
-
-This script will:
-
-1. Download and transform the GeoNames data.
+This script will:  
+1. Download and transform the GeoNames data.  
 2. Upload the resulting RDF file to GraphDB (deleting any existing repository, creating a new one, uploading the RDF, and configuring plugins).
 
----
-
-### **Manual Upload**
+### Manual Upload
 
 If you want to upload the data separately, you can run:
 

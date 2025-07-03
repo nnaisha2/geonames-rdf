@@ -2,3 +2,4 @@ data/*
 bin/*
 fuseki/*
 output/*
+graphdb-data/*

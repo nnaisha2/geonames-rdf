@@ -8,6 +8,7 @@ BIN_DIR="$PWD/bin"
 CONFIG_DIR="$PWD/config"
 
 COUNTRY_CODE="${1:-DE}"  # Accept country code as argument, default to DE
+UPLOAD=${UPLOAD:-false}
 
 # Step 1: Download GeoNames data
 echo "[1/3] Running download.sh for country code: $COUNTRY_CODE ..."
@@ -18,7 +19,9 @@ echo "[2/3] Running map.sh for country code: $COUNTRY_CODE ..."
 source ./map.sh "$COUNTRY_CODE"
 
 # Step 3: Upload RDF to GraphDB
-echo "[3/3] Running upload_to_graphdb.sh for country code: $COUNTRY_CODE ..."
-source ./upload_to_graphdb.sh "$COUNTRY_CODE"
+if [ "$UPLOAD" = "true" ]; then
+    echo "[3/3] Running upload_to_graphdb.sh for country code: $COUNTRY_CODE ..."
+    source ./upload_to_graphdb.sh "$COUNTRY_CODE"
+fi
 
-echo "Data preparation and upload complete. RDF file should be at $OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl and loaded into GraphDB."
+echo "Data preparation complete"

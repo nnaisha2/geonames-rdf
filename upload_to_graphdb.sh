@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e # Exit immediately if any command fails
+echo "GRAPHDB_HOST is: $GRAPHDB_HOST"
 
 # Configuration
 OUTPUT_DIR="$PWD/output"
 CONFIG_DIR="$PWD/config"
 REPOSITORY_ID="geonames"
-ADDRESS="http://localhost:7200/repositories/$REPOSITORY_ID"
+GRAPHDB_HOST="${GRAPHDB_HOST:-localhost}"
+ADDRESS="http://${GRAPHDB_HOST}:7200/repositories/$REPOSITORY_ID"
 USERNAME_WITH_PASSWORD=""  # Optional: -u user:pass
 REPOSITORY_CONFIG="$CONFIG_DIR/repository.ttl"
 

@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  graphdb:
+    image: ontotext/graphdb:11.0.1
+    container_name: graphdb
+    ports:
+      - "7200:7200"
+    volumes:
+      - ./graphdb-data:/opt/graphdb/home
+
+  geonames-rdf:
+    build: .
+    container_name: geonames-rdf
+    environment:
+      - GRAPHDB_HOST=graphdb
+      - UPLOAD=true
+    volumes:
+      - ./output:/output
+    depends_on:
+      - graphdb
