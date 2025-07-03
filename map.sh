@@ -23,6 +23,16 @@ if [ ! -f "$BIN_DIR/$SPARQL_ANYTHING_JAR" ]; then
       -o "$BIN_DIR/${SPARQL_ANYTHING_JAR}"
 fi
 
+# Download the Geonames ontology (ontology_v3.3.rdf) to the output directory if not already present.
+# This RDF ontology provides the schema/vocabulary definitions for interpreting the Geonames data in RDF format.
+echo "Downloading Geonames ontology (ontology_v3.3.rdf) to output directory..."
+if [ ! -f "$OUTPUT_DIR/ontology_v3.3.rdf" ]; then
+    curl -sSfL "https://download.geonames.org/ontology/ontology_v3.3.rdf" -o "$OUTPUT_DIR/ontology_v3.3.rdf"
+    echo "  - ontology_v3.3.rdf downloaded."
+else
+    echo "  - ontology_v3.3.rdf already present."
+fi
+
 # Process admin codes (all levels)
 echo "[transform 3/7] Processing admin codes for $COUNTRY_CODE..."
 java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
@@ -64,6 +74,7 @@ java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
     --query "$CONFIG_DIR/consolidate.rq" \
     --load "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl" \
     --output "$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
+
 
 echo "Final output at:"
 echo "  $OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"

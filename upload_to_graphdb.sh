@@ -28,6 +28,12 @@ curl -X POST --header "Content-Type: application/x-turtle" \
   --data-binary @$RDF_FILE \
   "$ADDRESS/statements" $USERNAME_WITH_PASSWORD
 
+# Upload the GeoNames ontology (RDF/XML) to the repository to provide schema/vocabulary definitions.
+echo "[3b/6] Uploading ontology_v3.3.rdf to GraphDB..."
+curl -X POST --header "Content-Type: application/rdf+xml" \
+  --data-binary @"$OUTPUT_DIR/ontology_v3.3.rdf" \
+  "$ADDRESS/statements" $USERNAME_WITH_PASSWORD
+
 # Step 4: Refresh GeoSPARQL plugin
 echo "[4/6] Refreshing GeoSPARQL plugin for '$REPOSITORY_ID'."
 curl "$ADDRESS/statements" $USERNAME_WITH_PASSWORD --data-urlencode update='INSERT DATA { [] <http://www.ontotext.com/plugins/geosparql#enabled> "false" . } ; INSERT DATA { [] <http://www.ontotext.com/plugins/geosparql#enabled> "true" . }'
