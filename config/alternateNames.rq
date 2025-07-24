@@ -32,7 +32,8 @@ WHERE {
 
     # Wikipedia Article (lang="link")
     BIND(
-      IF(BOUND(?lang) && ?lang = "link" && STRSTARTS(STR(?nameValue), "http"),
+      IF(
+        BOUND(?lang) && ?lang = "link" && REGEX(STR(?nameValue), "^https?://[a-z-]+\\.wikipedia\\.org/wiki/"),
         IRI(STR(?nameValue)),
         ?undef
       ) AS ?wikipediaArticle
@@ -49,12 +50,14 @@ WHERE {
     # - This avoids double-encoding and ensures Unicode is encoded.
     
     BIND(
-      IF(BOUND(?wikipediaArticle),
+      IF(
+        BOUND(?wikipediaArticle) && REGEX(STR(?wikipediaArticle), "^https?://en\\.wikipedia\\.org/wiki/"),
         IRI(CONCAT(
           "https://dbpedia.org/resource/",
-          IF(CONTAINS(STR(?wikipediaArticle), "%"),
-             REPLACE(STR(?wikipediaArticle), "^https?://[a-z-]+\\.wikipedia\\.org/wiki/", ""),
-             ENCODE_FOR_URI(REPLACE(STR(?wikipediaArticle), "^https?://[a-z-]+\\.wikipedia\\.org/wiki/", ""))
+          IF(
+            CONTAINS(STR(?wikipediaArticle), "%"),
+            REPLACE(STR(?wikipediaArticle), "^https?://en\\.wikipedia\\.org/wiki/", ""),
+            ENCODE_FOR_URI(REPLACE(STR(?wikipediaArticle), "^https?://en\\.wikipedia\\.org/wiki/", ""))
           )
         )),
         ?undef
@@ -63,11 +66,14 @@ WHERE {
 
     # Language-tagged alternate names
     BIND(
-      IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
-        STRLANG(STR(?nameValue), ?lang),
-        ?undef
-      ) AS ?alternateName
-    )
+  IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+    IF(BOUND(?pref) && ?pref = "1",
+      ?undef,  # not alternateName, will be officialName
+      STRLANG(STR(?nameValue), ?lang)
+    ),
+    ?undef
+  ) AS ?alternateName
+)
 
     # Postal Codes (lang="post")
     BIND(
@@ -78,12 +84,12 @@ WHERE {
     )
 
     # Official Names (preferred + language-tagged)
-    BIND(
-      IF(BOUND(?pref) && ?pref = "1" && BOUND(?alternateName),
-        ?alternateName,
-        ?undef
-      ) AS ?officialName
-    )
+   BIND(
+  IF(BOUND(?lang) && BOUND(?pref) && ?pref = "1" && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+    STRLANG(STR(?nameValue), ?lang),
+    ?undef
+  ) AS ?officialName
+)
 
     # Short Names (isShortName=1)
     BIND(

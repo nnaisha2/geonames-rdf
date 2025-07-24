@@ -21,7 +21,11 @@ source ./map.sh "$COUNTRY_CODE"
 # Step 3: Upload RDF to GraphDB
 if [ "$UPLOAD" = "true" ]; then
     echo "[3/3] Running upload_to_graphdb.sh for country code: $COUNTRY_CODE ..."
+    #start_time=$(date +%s)
     source ./upload_to_graphdb.sh "$COUNTRY_CODE"
+    #end_time=$(date +%s)
+    #duration=$((end_time - start_time))
+    #echo "Upload to GraphDB took approximately $duration seconds."
 fi
 
 echo "Data preparation complete"

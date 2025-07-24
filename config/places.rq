@@ -7,12 +7,14 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX cc: <http://creativecommons.org/ns#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX time: <http://www.w3.org/2006/time#>
+
 
 CONSTRUCT {
   # --- Feature triples ---
   ?uri a gn:Feature ;
     rdfs:isDefinedBy ?definitionDoc ;
-    gn:asciiname ?asciiname ;
+    # gn:asciiname ?asciiname ;
     gn:countryCode ?countryCode ;
     gn:featureClass ?featureClass ;
     gn:featureCode ?featureCode ;
@@ -26,14 +28,11 @@ CONSTRUCT {
     gn:parentADM2 ?parentAdm2 ;
     gn:parentADM3 ?parentAdm3 ;
     gn:parentADM4 ?parentAdm4 ;
-    gn:elevation ?elevation ;
-    gn:dem ?dem ;
+    #gn:elevation ?elevation ;
     gn:childrenFeatures ?child ;
-    gn:parentFeature ?parent ;
-    gn:parentFeature ?countryParentFeature ;  
-    gn:name ?bestName ;       
-    rdfs:label ?bestName ; 
-    gn:timezone ?timezone .
+    gn:parentFeature ?finalParentFeature ;
+    gn:name ?bestName .
+    #time:timezone ?timezone .
 
   # --- Document triples ---
   ?definitionDoc a foaf:Document ;
@@ -56,7 +55,7 @@ WHERE {
 
     # Minimal required fields
     ?s xyz:geonameid ?id ;
-       xyz:asciiname ?asciiname ;
+       #xyz:asciiname ?asciiname ;
        xyz:country%20code ?countryCode ;
        xyz:feature%20class ?featureClassString ;
        xyz:latitude ?latitude ;
@@ -67,9 +66,8 @@ WHERE {
 
     # Optional fields
     OPTIONAL { ?s xyz:feature%20code ?featureCodeString . }
-    OPTIONAL { ?s xyz:elevation ?elevation . }
-    OPTIONAL { ?s xyz:dem ?dem . }
-    OPTIONAL { ?s xyz:timezone ?timezone . }
+    #OPTIONAL { ?s xyz:elevation ?elevation . }
+    #OPTIONAL { ?s xyz:timezone ?timezone . }
     OPTIONAL { ?s xyz:modification%20date ?modDateRaw . }
     OPTIONAL { ?s xyz:adm1 ?adm1FullCode . }
     OPTIONAL { ?s xyz:adm2 ?adm2FullCode . }
@@ -135,22 +133,22 @@ WHERE {
 
   OPTIONAL {
     FILTER(BOUND(?adm1FullCode) && ?adm1FullCode != "")
-    ?parentAdm1 gn:admin1Code ?adm1FullCode .
+    ?parentAdm1 xyz:admin1Code ?adm1FullCode .
     FILTER(?parentAdm1 != ?uri)
   }
   OPTIONAL {
     FILTER(BOUND(?adm2FullCode) && ?adm2FullCode != "")
-    ?parentAdm2 gn:admin2Code ?adm2FullCode .
+    ?parentAdm2 xyz:admin2Code ?adm2FullCode .
     FILTER(?parentAdm2 != ?uri)
   }
   OPTIONAL {
     FILTER(?adm3FullCode != "")
-    ?parentAdm3 gn:admin3Code ?adm3FullCode .
+    ?parentAdm3 xyz:admin3Code ?adm3FullCode .
     FILTER(?parentAdm3 != ?uri)
   }
   OPTIONAL {
     FILTER(?adm4FullCode != "")
-    ?parentAdm4 gn:admin4Code ?adm4FullCode .
+    ?parentAdm4 xyz:admin4Code ?adm4FullCode .
     FILTER(?parentAdm4 != ?uri)
   }
 
@@ -169,4 +167,12 @@ WHERE {
     FILTER(STR(?id) = STR(?childId))
     BIND(URI(CONCAT("https://sws.geonames.org/", ?parentId, "/")) AS ?countryParentFeature)
   }
+
+  # --- # Use country as parent for ADM1 features ---
+  BIND(
+    IF(?featureClassString = "A" && ?featureCodeString = "ADM1",
+       ?parentCountry, 
+       COALESCE(?parent, ?countryParentFeature)  
+    ) AS ?finalParentFeature
+  )
 }

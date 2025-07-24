@@ -8,11 +8,16 @@ CONFIG_DIR="$PWD/config"
 REPOSITORY_ID="geonames"
 GRAPHDB_HOST="${GRAPHDB_HOST:-localhost}"
 ADDRESS="http://${GRAPHDB_HOST}:7200/repositories/$REPOSITORY_ID"
-USERNAME_WITH_PASSWORD=""  # Optional: -u user:pass
 REPOSITORY_CONFIG="$CONFIG_DIR/repository.ttl"
 
-COUNTRY_CODE="${1:-DE}"  # Accept country code as argument, default to DE
+COUNTRY_CODE="${1:-DE}"           # 1st argument: Country code, default to DE
+USERNAME_WITH_PASSWORD="${2:-}"  # 2nd argument: Optional "-u user:pass"
+
 RDF_FILE="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
+ONTOLOGY_FILE="$OUTPUT_DIR/ontology_v3.3.rdf"
+
+GRAPH_GEONAMES="geonames_${COUNTRY_CODE}"
+GRAPH_ONTOLOGY="ontology_v3.3"
 
 # Step 1: Delete existing repository (if any)
 echo "[1/6] Removing '$REPOSITORY_ID' repository for country code: $COUNTRY_CODE."
@@ -25,16 +30,16 @@ curl -X PUT --header "Content-Type: application/x-turtle" \
   "$ADDRESS" $USERNAME_WITH_PASSWORD
 
 # Step 3: Upload RDF file(s) to GraphDB
-echo "[3/6] Uploading $RDF_FILE to GraphDB..."
+echo "[3/6] Uploading $RDF_FILE to named graph '$GRAPH_GEONAMES'..."
 curl -X POST --header "Content-Type: application/x-turtle" \
   --data-binary @$RDF_FILE \
-  "$ADDRESS/statements" $USERNAME_WITH_PASSWORD
+  "$ADDRESS/rdf-graphs/$GRAPH_GEONAMES" $USERNAME_WITH_PASSWORD
 
 # Upload the GeoNames ontology (RDF/XML) to the repository to provide schema/vocabulary definitions.
-echo "[3b/6] Uploading ontology_v3.3.rdf to GraphDB..."
+echo "[3b/6] Uploading $ONTOLOGY_FILE to named graph '$GRAPH_ONTOLOGY'..."
 curl -X POST --header "Content-Type: application/rdf+xml" \
-  --data-binary @"$OUTPUT_DIR/ontology_v3.3.rdf" \
-  "$ADDRESS/statements" $USERNAME_WITH_PASSWORD
+  --data-binary @"$ONTOLOGY_FILE" \
+  "$ADDRESS/rdf-graphs/$GRAPH_ONTOLOGY" $USERNAME_WITH_PASSWORD
 
 # Step 4: Refresh GeoSPARQL plugin
 echo "[4/6] Refreshing GeoSPARQL plugin for '$REPOSITORY_ID'."

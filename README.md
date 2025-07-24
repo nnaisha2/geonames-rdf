@@ -108,9 +108,9 @@ If you want to run both GraphDB and the GeoNames RDF pipeline together, use the 
 ```bash
 docker compose up --build
 ```
-- This command builds the GeoNames RDF pipeline image locally from the Dockerfile.
-- This will start both the GraphDB database and the geonames-rdf pipeline, handling networking and data volumes automatically.
-- After processing, access GraphDB at [http://localhost:7200](http://localhost:7200).
+- This command builds the GeoNames RDF pipeline image locally from the Dockerfile.  
+- This will start both the GraphDB database and the geonames-rdf pipeline, handling networking and data volumes automatically.  
+- After processing, access GraphDB at [http://localhost:7200](http://localhost:7200).  
 - Find the processed RDF output in the `output` folder.
 
 
@@ -121,12 +121,17 @@ To run the scripts directly, run:
 ```
 ./download.sh DE
 ./map.sh DE
-./upload_to_graphdb.sh DE
+./upload_to_graphdb.sh DE "-u your_username:your_password"
 ```
 
 Replace `DE` with your desired country code, or use `allCountries` for the full dataset.
 
-This will download SPARQL Anything if not already available.
+- The **second argument** to `upload_to_graphdb.sh` is optional and **should be passed as `-u username:password` if authentication is required**.
+- If your GraphDB server does **not** require authentication, you can omit this argument entirely:
+
+```
+./upload_to_graphdb.sh DE
+```
 
 ## Output
 
@@ -139,19 +144,25 @@ After running the transform process, you’ll find an `output/geonames_COUNTRYCO
 Just run:
 
 ```
-./entrypoint.sh DE
+UPLOAD=true ./entrypoint.sh
 ```
 
 This script will:  
 1. Download and transform the GeoNames data.  
-2. Upload the resulting RDF file to GraphDB (deleting any existing repository, creating a new one, uploading the RDF, and configuring plugins).
+2. Upload the resulting RDF file to GraphDB (deleting any existing repository, creating a new one, uploading the RDF to separate named graphs, and configuring plugins).
 
 ### Manual Upload
 
 If you want to upload the data separately, you can run:
 
 ```
-./upload_to_graphdb.sh DE
+./upload_to_graphdb.sh DE "-u your_username:your_password"
 ```
 
-Replace `DE` with your desired country code.
+## Estimated Upload Duration
+
+The upload of RDF data to GraphDB takes approximately **4 minutes** (about 230 seconds) for the Germany (DE) dataset on our current setup.  
+Please note that actual upload times may vary depending on network conditions, hardware, and dataset size.
+
+The full data preparation process, including download, transformation, and upload 
+( if you run ```time UPLOAD=true ./entrypoint.sh DE ``` ), typically takes around **10 minutes** for Germany (DE).
