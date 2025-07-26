@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e # Exit immediately if any command fails
-echo "GRAPHDB_HOST is: $GRAPHDB_HOST"
 
 # Configuration
 OUTPUT_DIR="$PWD/output"
@@ -16,8 +15,8 @@ USERNAME_WITH_PASSWORD="${2:-}"  # 2nd argument: Optional "-u user:pass"
 RDF_FILE="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
 ONTOLOGY_FILE="$OUTPUT_DIR/ontology_v3.3.rdf"
 
-GRAPH_GEONAMES="geonames_${COUNTRY_CODE}"
-GRAPH_ONTOLOGY="ontology_v3.3"
+GRAPH_GEONAMES="https://sws.geonames.org"
+GRAPH_ONTOLOGY="https://www.geonames.org/ontology"
 
 # Step 1: Delete existing repository (if any)
 echo "[1/6] Removing '$REPOSITORY_ID' repository for country code: $COUNTRY_CODE."
@@ -31,15 +30,19 @@ curl -X PUT --header "Content-Type: application/x-turtle" \
 
 # Step 3: Upload RDF file(s) to GraphDB
 echo "[3/6] Uploading $RDF_FILE to named graph '$GRAPH_GEONAMES'..."
-curl -X POST --header "Content-Type: application/x-turtle" \
-  --data-binary @$RDF_FILE \
-  "$ADDRESS/rdf-graphs/$GRAPH_GEONAMES" $USERNAME_WITH_PASSWORD
+curl -X POST \
+  --header "Content-Type: application/x-turtle" \
+  --data-binary @"$RDF_FILE" \
+  "$ADDRESS/rdf-graphs/service?graph=$GRAPH_GEONAMES" \
+  $USERNAME_WITH_PASSWORD
 
 # Upload the GeoNames ontology (RDF/XML) to the repository to provide schema/vocabulary definitions.
 echo "[3b/6] Uploading $ONTOLOGY_FILE to named graph '$GRAPH_ONTOLOGY'..."
-curl -X POST --header "Content-Type: application/rdf+xml" \
+curl -X POST \
+  --header "Content-Type: application/rdf+xml" \
   --data-binary @"$ONTOLOGY_FILE" \
-  "$ADDRESS/rdf-graphs/$GRAPH_ONTOLOGY" $USERNAME_WITH_PASSWORD
+  "$ADDRESS/rdf-graphs/service?graph=$GRAPH_ONTOLOGY" \
+  $USERNAME_WITH_PASSWORD
 
 # Step 4: Refresh GeoSPARQL plugin
 echo "[4/6] Refreshing GeoSPARQL plugin for '$REPOSITORY_ID'."
@@ -52,4 +55,4 @@ curl -X DELETE --header "Content-Type: text/plain" "$ADDRESS/namespaces/" $USERN
 echo "[6/6] Enabling autocomplete index for '$REPOSITORY_ID' repository."
 curl "$ADDRESS/statements" $USERNAME_WITH_PASSWORD --data-urlencode update='INSERT DATA { _:s <http://www.ontotext.com/plugins/autocomplete#enabled> true . }'
 
-echo "RDF for country code $COUNTRY_CODE uploaded to $ADDRESS"
+echo "RDF for country code $COUNTRY_CODE successfully uploaded to $ADDRESS"

@@ -65,8 +65,7 @@ done
 # Final merge with proper ordering
 echo "[transform 6/7] Merging outputs for $COUNTRY_CODE..."
 cat "$DATA_DIR"/geonames_${COUNTRY_CODE}_*.csv.ttl \
-    "$DATA_DIR"/alternateNamesV2_${COUNTRY_CODE}_*.csv.ttl \
-    "$DATA_DIR"/admin-codes.ttl > "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl"
+    "$DATA_DIR"/alternateNamesV2_${COUNTRY_CODE}_*.csv.ttl  > "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl"
 
 # Optimize output format
 echo "[transform 7/7] Optimizing output format for $COUNTRY_CODE..."

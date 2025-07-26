@@ -9,7 +9,7 @@ PREFIX graphdb: <http://www.ontotext.com/config/graphdb#>
        rep:repositoryType "graphdb:SailRepository" ;
        sr:sailImpl [
            sail:sailType "graphdb:Sail" ;
-           graphdb:ruleset "rdfsplus-optimized" ;
+           graphdb:ruleset "empty" ;
            graphdb:storage-folder "storage" ;
            graphdb:enable-context-index true ;
            graphdb:enablePredicateList true ;

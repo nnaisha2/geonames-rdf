@@ -55,7 +55,7 @@ WHERE {
 
     # Minimal required fields
     ?s xyz:geonameid ?id ;
-       #xyz:asciiname ?asciiname ;
+       xyz:asciiname ?asciiname ;
        xyz:country%20code ?countryCode ;
        xyz:feature%20class ?featureClassString ;
        xyz:latitude ?latitude ;

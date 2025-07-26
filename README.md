@@ -9,160 +9,98 @@ You can download a periodically updated RDF file from http://geonames.ams3.digit
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)  
-- [Running](#running)  
-  - [Specifying a Country Code](#specifying-a-country-code)  
-  - [Note on Processing allCountries](#note-on-processing-allcountries)  
-  - [Running in Docker (Single Container)](#running-in-docker-single-container)  
-  - [Running with Docker Compose (Multi-Container)](#running-with-docker-compose-multi-container)  
-  - [Running Directly on Host](#running-directly-on-host)  
+- [Running the Conversion](#running-the-conversion)  
 - [Output](#output)  
 - [Loading into GraphDB](#loading-into-graphdb)  
-  - [Automated Loading](#automated-loading)  
-  - [Manual Upload](#manual-upload)  
-- [Disclaimer](#disclaimer)  
 
 ## Prerequisites
 
-- **Java 17 or higher** is required to run SPARQL Anything.  
-  Check your version with:
-
+- **Java 17+** is required for SPARQL Anything. Check with:
   ```
   java -version
   ```
+- A SPARQL server like **GraphDB** is needed for loading and querying RDF.
 
-- **GraphDB** (or another compatible SPARQL server) is required for loading and querying the resulting RDF.
-
-**Optional:**  
-If you encounter memory issues, increase the Java heap size by adding the `-Xmx` flag, e.g.:
-
+*If you encounter memory issues, increase Java heap size:*
 ```
 java -Xmx8g -jar $BIN_DIR/$SPARQL_ANYTHING_JAR --query "$CONFIG_DIR/alternateNames.rq" --output $DATA_DIR/alternate-names.ttl
 ```
 
----
+## Running the Conversion
 
-## Running
+You can run the scripts via Docker (single or multi-container), or directly on your host.
 
-You can run the transform process in a Docker container, with Docker Compose, or directly on your host machine.
+### Specify a Country Code
 
-### Specifying a Country Code
-
-All scripts accept an optional country code as their first argument.  
-- For example, to process Germany: `DE`
-- For France: `FR`
-- For all countries: `allCountries`
-
-If no country code is specified, the default is `DE`.
-
-**Examples:**
+Provide a 2-letter ISO country code as an argument to target that country, e.g.:
 
 ```
-./entrypoint.sh DE          # Germany
-./entrypoint.sh FR          # France
-./entrypoint.sh allCountries # All countries
+./entrypoint.sh DE         # Germany
+./entrypoint.sh FR         # France
+./entrypoint.sh allCountries  # Full dataset (requires more memory)
 ```
 
-### Note on Processing allCountries
+If omitted, `DE` (Germany) is the default.
 
-**Processing allCountries requires much more memory.**  
-Before running `./entrypoint.sh allCountries` (or `./map.sh allCountries`), increase the Java heap size for SPARQL Anything.
+*Note:* Processing `allCountries` requires increased Java heap size (e.g., `-Xmx16g`).
 
-**Example:**  
-Edit your `map.sh` so that Java is invoked like this:
+### Using Docker (Single Container)
 
-```
-java -Xmx16g -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" ...
-```
-
-Or, set the `JAVA_TOOL_OPTIONS` environment variable:
-
-```
-export JAVA_TOOL_OPTIONS="-Xmx16g"
-./entrypoint.sh allCountries
-```
-
-### Running in Docker (Single Container)
-
-To run the **transform process** in a Docker container:
-
-1. Build the Docker image locally 
+Build the image:
 ```bash
 docker build -t geonames-rdf .
 ```
-2. Run the transform process
+
+Run the process, for example for France:
 ```bash
-docker run -v $(pwd)/output:/output --rm geonames-rdf
+docker run --user "$(id -u):$(id -g)" -it --rm \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/output:/app/output \
+  geonames-rdf FR
 ```
 
-
-For large datasets or `allCountries`, increase Java heap size:
-
+Increase Java heap size if needed by setting environment variable `JAVA_TOOL_OPTIONS`:
 ```bash
-docker run -v $(pwd)/output:/output -e JAVA_TOOL_OPTIONS="-Xmx8g" --rm geonames-rdf
+-e JAVA_TOOL_OPTIONS="-Xmx8g"
 ```
 
-### Running with Docker Compose (Multi-Container)
+### Using Docker Compose
 
-If you want to run both GraphDB and the GeoNames RDF pipeline together, use the provided `docker-compose.yml`:
-
+To run GraphDB and the RDF pipeline together:
 ```bash
 docker compose up --build
 ```
-- This command builds the GeoNames RDF pipeline image locally from the Dockerfile.  
-- This will start both the GraphDB database and the geonames-rdf pipeline, handling networking and data volumes automatically.  
-- After processing, access GraphDB at [http://localhost:7200](http://localhost:7200).  
-- Find the processed RDF output in the `output` folder.
+Access GraphDB at [http://localhost:7200](http://localhost:7200).
 
+### Running on Host
 
-### Running Directly on Host
-
-To run the scripts directly, run:
-
+Run these scripts sequentially:
 ```
 ./download.sh DE
 ./map.sh DE
-./upload_to_graphdb.sh DE "-u your_username:your_password"
+./upload_to_graphdb.sh DE "-u username:password"
 ```
-
-Replace `DE` with your desired country code, or use `allCountries` for the full dataset.
-
-- The **second argument** to `upload_to_graphdb.sh` is optional and **should be passed as `-u username:password` if authentication is required**.
-- If your GraphDB server does **not** require authentication, you can omit this argument entirely:
-
-```
-./upload_to_graphdb.sh DE
-```
+Replace `DE` with your target country code or `allCountries`. The second argument is optional and used for authentication.
 
 ## Output
 
-After running the transform process, you’ll find an `output/geonames_COUNTRYCODE.ttl` file that you can load into a SPARQL server. For example: `output/geonames_DE.ttl` for Germany.
+After conversion, find `output/geonames_COUNTRYCODE.ttl`, e.g., `output/geonames_DE.ttl` for Germany.
 
 ## Loading into GraphDB
 
-### Automated Loading
-
-Just run:
-
+### Automated Upload
+Run:
 ```
 UPLOAD=true ./entrypoint.sh
 ```
-
-This script will:  
-1. Download and transform the GeoNames data.  
-2. Upload the resulting RDF file to GraphDB (deleting any existing repository, creating a new one, uploading the RDF to separate named graphs, and configuring plugins).
+This downloads data, converts to RDF, uploads to GraphDB, creates repositories, and configures plugins.
 
 ### Manual Upload
-
-If you want to upload the data separately, you can run:
-
+Run separately with:
 ```
-./upload_to_graphdb.sh DE "-u your_username:your_password"
+./upload_to_graphdb.sh DE "-u username:password"
 ```
 
-## Estimated Upload Duration
-
-The upload of RDF data to GraphDB takes approximately **4 minutes** (about 230 seconds) for the Germany (DE) dataset on our current setup.  
-Please note that actual upload times may vary depending on network conditions, hardware, and dataset size.
-
-The full data preparation process, including download, transformation, and upload 
-( if you run ```time UPLOAD=true ./entrypoint.sh DE ``` ), typically takes around **10 minutes** for Germany (DE).
+**Estimated Upload Times:**  
+- Approx. 4 minutes to upload Germany dataset RDF (230 seconds).  
+- Full process (download, convert, upload) takes about 10 minutes for Germany.
