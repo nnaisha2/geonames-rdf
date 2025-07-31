@@ -1,5 +1,6 @@
 PREFIX gn: <https://www.geonames.org/ontology#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 CONSTRUCT {
   ?uri ?p ?o .
@@ -24,6 +25,12 @@ WHERE {
         ?uri gn:featureClass gn:A ;
              gn:featureCode gn:A.ADM1 .
       }
+    ))
+
+    # Filter out gn:population triples where population is 0
+    FILTER( !(
+      ?p = gn:population &&
+      ( ?o = 0 || ?o = "0"^^xsd:integer || ?o = "0" )
     ))
   }
   UNION
