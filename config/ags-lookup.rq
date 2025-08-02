@@ -1,0 +1,20 @@
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+CONSTRUCT {
+  ?featureUri wdt:P439 ?ags .
+}
+WHERE {
+  SERVICE <x-sparql-anything:> {
+    fx:properties
+      fx:location "data/ags-lookup.csv" ;
+      fx:csv.headers true ;
+      fx:csv.delimiter "\t" .
+
+    ?row xyz:geonameid ?id ;
+         xyz:ags ?ags .
+
+    BIND(IRI(CONCAT("https://sws.geonames.org/", ?id, "/")) AS ?featureUri)
+  }
+}

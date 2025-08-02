@@ -1,10 +1,12 @@
 PREFIX gn: <https://www.geonames.org/ontology#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
 CONSTRUCT {
   ?uri ?p ?o .
   ?doc ?dp ?dv .
+  ?property ?pp ?po .
 }
 WHERE {
   {
@@ -37,6 +39,11 @@ WHERE {
   {
     ?doc a foaf:Document ;
          ?dp ?dv .
+  }
+  UNION
+  {
+    ?property a owl:DatatypeProperty ;
+              ?pp ?po .
   }
 }
 ORDER BY ?uri
