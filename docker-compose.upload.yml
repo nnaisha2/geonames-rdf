@@ -1,0 +1,20 @@
+services:
+  qendpoint:
+    image: qacompany/qendpoint
+    container_name: qendpoint
+    ports:
+      - "1234:1234"
+    environment:
+      - MEM_SIZE=8G
+  geonames-upload:
+    build: .
+    container_name: geonames-upload
+    environment:
+      - UPLOAD_QENDPOINT=true
+      - QENDPOINT_HOST=qendpoint
+      - COUNTRY_CODE
+    volumes:
+      - ./output:/output
+    depends_on:
+      - qendpoint
+    command: ["./entrypoint-upload.sh", "${COUNTRY_CODE}"]

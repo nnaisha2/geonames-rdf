@@ -190,39 +190,55 @@ for f in "$DATA_DIR"/geonames_${country_files}_*; do
     rm "$f"
 done
 
-# Create AGS lookup csv for DE
+# Purpose:
+# This block generates a lookup CSV mapping geoname IDs to official German administrative region codes (AGS)
+# only if the target country is Germany ("DE"). It processes a geonames TSV dataset specific to Germany.
+# Approach:
+# - Loads an external mapping from admin1 codes to AGS codes.
+# - Reads the geonames file header once to index columns by name for clarity.
+# - For each German record, selects the most detailed administrative code available from admin4 down to admin1.
+#   For admin1, the code uses the loaded mapping to get the correct AGS.
+# - Outputs a two-column tab-separated file with geonameid and the resolved AGS code.
+# Notes:
+# - The hierarchy of administrative codes is checked in decreasing specificity to ensure the best match.
+# - Lines with missing or "NONE" admin codes are ignored to avoid invalid mappings.
+
 if [ "$country_files" = "DE" ]; then
   echo "[process 18/18] Creating AGS lookup csv for DE..."
-
- awk -F'\t' -v OFS="\t" -v country="DE" -v mapfile="$CONFIG_DIR/admin1_ags_map.txt" '
-BEGIN {
-  print "geonameid\tags";
-  while ((getline < mapfile) > 0) {
-    split($0, kv, " ");
-    if (length(kv[1]))
-      admin1ags[kv[1]] = kv[2];
+  awk -F'\t' -v OFS="\t" -v country="DE" -v mapfile="$CONFIG_DIR/admin1_ags_map.txt" '
+  BEGIN {
+    print "geonameid\tags";                  # Print header line for output CSV
+    
+    # Load admin1 to AGS code mapping from mapfile into array admin1ags
+    while ((getline < mapfile) > 0) {
+      split($0, kv, " ");                      # Split each line into key and value by space
+      if (length(kv[1]))                       # Only store if key (admin1 code) exists
+        admin1ags[kv[1]] = kv[2];
+    }
+    close(mapfile);
   }
-  close(mapfile);
-}
-NR==1 {
-  for (i=1; i<=NF; i++) hdr[$i] = i;
-  next
-}
-$hdr["country code"] == country {
-  ags = "";
-  if ($hdr["admin4 code"] != "" && $hdr["admin4 code"] != "NONE")
-    ags = $hdr["admin4 code"];
-  else if ($hdr["admin3 code"] != "" && $hdr["admin3 code"] != "NONE")
-    ags = $hdr["admin3 code"];
-  else if ($hdr["admin2 code"] != "" && $hdr["admin2 code"] != "NONE")
-    ags = $hdr["admin2 code"];
-  else if ($hdr["admin1 code"] != "" && $hdr["admin1 code"] != "NONE")
-    ags = admin1ags[$hdr["admin1 code"]];
-  if (ags != "" && ags != "NONE")
-    print $hdr["geonameid"], ags;
-}
-' "$DATA_DIR/geonames_DE_aa.csv" > "$DATA_DIR/ags-lookup.csv"
-
+  NR==1 {
+    # On first line of geonames file, record the column indices by header name for easy reference
+    for (i=1; i<=NF; i++) hdr[$i] = i;
+    next;                                     # Skip header line from processing
+  }
+  $hdr["country code"] == country {
+    ags = "";
+    # Select the most specific admin code available, from admin4 down to admin1
+    
+    if ($hdr["admin4 code"] != "" && $hdr["admin4 code"] != "NONE")
+      ags = $hdr["admin4 code"];
+    else if ($hdr["admin3 code"] != "" && $hdr["admin3 code"] != "NONE")
+      ags = $hdr["admin3 code"];
+    else if ($hdr["admin2 code"] != "" && $hdr["admin2 code"] != "NONE")
+      ags = $hdr["admin2 code"];
+    else if ($hdr["admin1 code"] != "" && $hdr["admin1 code"] != "NONE")
+      ags = admin1ags[$hdr["admin1 code"]];    # Use the mapping array for admin1
+    
+    if (ags != "" && ags != "NONE")
+      print $hdr["geonameid"], ags;           # Output geonameid and selected AGS code
+  }
+  ' "$DATA_DIR/geonames_DE_aa.csv" > "$DATA_DIR/ags-lookup.csv"
 fi
 
 echo "Geonames data processing complete for $country_files! All files are ready in $DATA_DIR"

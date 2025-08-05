@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+COUNTRY_CODE="${1:-DE}"
+UPLOAD=${UPLOAD:-true}
+UPLOAD_QENDPOINT=${UPLOAD_QENDPOINT:-false}
+QENDPOINT_HOST=${QENDPOINT_HOST:-qendpoint}
+QENDPOINT_PORT=1234
+
+echo "[UPLOAD] Starting upload for country code: $COUNTRY_CODE ..."
+
+if [ "$UPLOAD_QENDPOINT" = "true" ]; then
+  echo "[UPLOAD] Waiting for qEndpoint at $QENDPOINT_HOST:$QENDPOINT_PORT..."
+  until curl -s "http://$QENDPOINT_HOST:$QENDPOINT_PORT/" > /dev/null; do
+    echo "Waiting for qEndpoint to be ready..."
+    sleep 5
+  done
+  echo "[3b/3] Uploading to qEndpoint ..."
+  source ./upload_to_qendpoint.sh "$COUNTRY_CODE"
+elif [ "$UPLOAD_GRAPHDB" = "true" ]; then
+  echo "[3a/3] Uploading to GraphDB ..."
+  source ./upload_to_graphdb.sh "$COUNTRY_CODE"
+else
+  echo "No upload target specified. Skipping upload."
+fi
+
+echo "[UPLOAD] Completed."

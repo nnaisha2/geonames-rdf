@@ -7,13 +7,15 @@ services:
     volumes:
       - ./graphdb-data:/opt/graphdb/home
 
-  geonames-rdf:
+  geonames-upload:
     build: .
-    container_name: geonames-rdf
+    container_name: geonames-upload
     environment:
+      - UPLOAD_GRAPHDB=true
       - GRAPHDB_HOST=graphdb
-      - UPLOAD=true
+      - COUNTRY_CODE  
     volumes:
       - ./output:/output
     depends_on:
       - graphdb
+    command: ["./entrypoint-upload.sh", "${COUNTRY_CODE}"]

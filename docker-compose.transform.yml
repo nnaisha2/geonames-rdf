@@ -1,0 +1,10 @@
+services:
+  geonames-transform:
+    build: .
+    container_name: geonames-transform
+    volumes:
+      - ./data:/app/data       
+      - ./output:/app/output
+    environment:
+      - COUNTRY_CODE
+    command: ["./entrypoint-transform.sh", "${COUNTRY_CODE}"]
