@@ -5,5 +5,4 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 
 wdt:P439 a owl:DatatypeProperty ;
-    skos:prefLabel "Amtlicher Gemeindeschlüssel"@de, "German municipality key"@en ;
-    rdfs:isDefinedBy <https://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl%C3%BCssel> .
+    skos:prefLabel "Amtlicher Gemeindeschlüssel"@de, "German municipality key"@en .

@@ -205,38 +205,56 @@ done
 
 if [ "$country_files" = "DE" ]; then
   echo "[process 18/18] Creating AGS lookup csv for DE..."
-  awk -F'\t' -v OFS="\t" -v country="DE" -v mapfile="$CONFIG_DIR/admin1_ags_map.txt" '
+
+  awk -F'\t' -v OFS="\t" -v country="DE" \
+      -v mapfile="$CONFIG_DIR/admin1_ags_map.txt" '
+
   BEGIN {
-    print "geonameid\tags";                  # Print header line for output CSV
-    
-    # Load admin1 to AGS code mapping from mapfile into array admin1ags
+    # Print header line in output CSV (tab-separated)
+    print "geonameid\tags"
+
+    # Load admin1 → AGS mapping from the mapfile into an array
     while ((getline < mapfile) > 0) {
-      split($0, kv, " ");                      # Split each line into key and value by space
-      if (length(kv[1]))                       # Only store if key (admin1 code) exists
-        admin1ags[kv[1]] = kv[2];
+      split($0, kv, " ")         # split each line into key/value by space
+      if (length(kv[1]))         # ignore empty keys
+        admin1ags[kv[1]] = kv[2] # store mapping in array
     }
-    close(mapfile);
+    close(mapfile)
   }
+
   NR==1 {
-    # On first line of geonames file, record the column indices by header name for easy reference
-    for (i=1; i<=NF; i++) hdr[$i] = i;
-    next;                                     # Skip header line from processing
+    # Store the column index for each header name for quick lookup
+    for (i=1; i<=NF; i++)
+      hdr[$i] = i
+    next # skip processing this header row
   }
-  $hdr["country code"] == country {
-    ags = "";
-    # Select the most specific admin code available, from admin4 down to admin1
-    
+
+  # PROCESSING FILTER:
+  # 1. Country must match "DE"
+  # 2. Feature class must be "A" (Administrative boundary)
+  # 3. Feature code must be one of ADM1–ADM4
+  $hdr["country code"] == country &&
+  $hdr["feature class"] == "A" &&
+  ($hdr["feature code"] == "ADM1" ||
+   $hdr["feature code"] == "ADM2" ||
+   $hdr["feature code"] == "ADM3" ||
+   $hdr["feature code"] == "ADM4") {
+
+    ags = "" # reset AGS variable for this row
+
+    # Choose the most specific available admin code
     if ($hdr["admin4 code"] != "" && $hdr["admin4 code"] != "NONE")
-      ags = $hdr["admin4 code"];
+      ags = $hdr["admin4 code"]
     else if ($hdr["admin3 code"] != "" && $hdr["admin3 code"] != "NONE")
-      ags = $hdr["admin3 code"];
+      ags = $hdr["admin3 code"]
     else if ($hdr["admin2 code"] != "" && $hdr["admin2 code"] != "NONE")
-      ags = $hdr["admin2 code"];
+      ags = $hdr["admin2 code"]
     else if ($hdr["admin1 code"] != "" && $hdr["admin1 code"] != "NONE")
-      ags = admin1ags[$hdr["admin1 code"]];    # Use the mapping array for admin1
-    
+      ags = admin1ags[$hdr["admin1 code"]] # look up mapped AGS
+
+    # If AGS is found and valid, print geonameid + AGS
     if (ags != "" && ags != "NONE")
-      print $hdr["geonameid"], ags;           # Output geonameid and selected AGS code
+      print $hdr["geonameid"], ags
   }
   ' "$DATA_DIR/geonames_DE_aa.csv" > "$DATA_DIR/ags-lookup.csv"
 fi
