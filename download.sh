@@ -1,4 +1,4 @@
-set -x # uncomment for debugging
+#set -x # uncomment for debugging
 #!/bin/sh
 
 # This script downloads and processes Geonames data for mapping purposes.

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GeoNames Project Documentation</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header>
+      <h1>GeoNames SPARQL Interface Documentation</h1>
+      <nav>
+        <ul>
+          <a href="index.html">Home</a>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <section>
+          <h2>Introduction</h2>
+          <p>
+            This documentation outlines key observations, known limitations, and
+            conventions related to the GeoNames data dumps and ontologies used
+            in the GeoNames SPARQL interface.
+          </p>
+        </section>
+
+        <section>
+          <h2>
+            1. Use of <code>dcterms:modified</code> vs. Absence of
+            <code>dcterms:created</code> in CSV Dumps
+          </h2>
+          <p>
+            The <code>dcterms:created</code> property is
+            <strong>not included</strong> in the GeoNames CSV dump files. Only
+            <code>dcterms:modified</code> is present to indicate the last update
+            date.
+          </p>
+        </section>
+
+        <section>
+          <h2>
+            2. Namespace Prefix <code>gn</code> Variations Across RDF Files
+          </h2>
+          <ul>
+            <li>
+              The <code>gn</code> prefix in GeoNames RDF files is not consistent
+              in protocol:
+              <ul>
+                <li>
+                  The ontology file (<code>ontology_v3.3.rdf</code>) uses
+                  <code>https://www.geonames.org/ontology#</code>.
+                </li>
+                <li>
+                  The mappings file (<code>mappings_v3.01.rdf</code>) and place
+                  descriptions (<code>about.rdf</code>) use
+                  <code>http://www.geonames.org/ontology#</code>.
+                </li>
+              </ul>
+            </li>
+            <li>
+              To ensure security and consistency, this project adopts the
+              <code>https://www.geonames.org/ontology#</code> namespace as
+              specified by the ontology file.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>3. Inconsistencies in <code>gn:alternateName</code> Usage</h2>
+          <p>
+            The <code>gn:alternateName</code> property usage varies across
+            GeoNames RDF datasets:
+          </p>
+          <ul>
+            <li>Some alternate names lack language tags.</li>
+            <li>
+              Language tags vary reflecting source dataset differences (e.g.,
+              <code>de</code>, <code>en</code>).
+            </li>
+            <li>
+              These inconsistencies are inherited from the original data
+              sources.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>4. Handling Population Values Set to Zero</h2>
+          <p>Population data in GeoNames has these characteristics:</p>
+          <ul>
+            <li>
+              Many CSV dumps list <code>population</code> as <code>0</code> when
+              data is missing, not truly zero population.
+            </li>
+            <li>
+              The <code>about.rdf</code> files omit the population property if
+              unknown.
+            </li>
+            <li>
+              Our Turtle-format output excludes
+              <code>gn:population</code> triples with a value of zero to prevent
+              misunderstanding.
+            </li>
+          </ul>
+          <p>
+            <strong>Example:</strong>
+            <a
+              href="https://sws.geonames.org/2867711/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              München (Uebigau-Wahrenbrück)
+            </a>
+            shows a population of <code>0</code> in CSV, no value in RDF,
+            despite external sources reporting an estimated 16 residents.
+          </p>
+        </section>
+
+        <section>
+          <h2>References</h2>
+          <ul>
+            <li>
+              <a
+                href="https://www.geonames.org/ontology/ontology_v3.3.rdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GeoNames Ontology v3.3
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.geonames.org/ontology/mappings_v3.01.rdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GeoNames Mappings v3.01
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://sws.geonames.org/3220837/about.rdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GeoNames About RDF Example
+              </a>
+            </li>
+            <li>Local file: <code>geonames_DE.ttl</code></li>
+            <li>GeoNames CSV dump data</li>
+          </ul>
+        </section>
+      </article>
+    </main>
+
+    <footer>
+      <p>&copy; 2025</p>
+    </footer>
+  </body>
+</html>

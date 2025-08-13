@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 COUNTRY_CODE="${1:-DE}"
 UPLOAD_TARGET="${2:-qendpoint}"
 
@@ -9,6 +8,15 @@ COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.download.yml up --bu
 
 echo "[2/3] Transforming..."
 COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.transform.yml up --build
+
+# Create latest.json for the frontend
+latest_ttl=$(basename $(ls output/geonames_*.ttl | grep -v "_pre_optimization" | head -n 1) 2>/dev/null || true)
+if [ -n "$latest_ttl" ] && [ -f "output/$latest_ttl" ]; then
+  echo "{\"latestFile\": \"$latest_ttl\"}" > web/latest.json
+  echo " Created web/latest.json -> $latest_ttl"
+else
+  echo "No final TTL file found in output/"
+fi
 
 echo "[3/3] Uploading to $UPLOAD_TARGET..."
 if [ "$UPLOAD_TARGET" == "qendpoint" ]; then

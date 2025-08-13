@@ -8,13 +8,15 @@ You can download a periodically updated RDF file from http://geonames.ams3.digit
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)  
-- [Running the Conversion](#running-the-conversion)  
-- [Docker Compose Pipeline (3-stage)](#docker-compose-pipeline-3-stage)
-- [Running All with `entrypoint.sh`](#running-all-with-entrypointsh)
-- [Running All with `run-all.sh`](#running-all-with-run-allsh)
-- [Output](#output)  
-- [Uploading to GraphDB or qEndpoint](#uploading-to-graphdb-or-qendpoint)
+- [Prerequisites](#prerequisites)  
+- [Running the Conversion](#running-the-conversion)  
+- [Docker Compose Pipeline (3-stage)](#docker-compose-pipeline-3-stage)  
+- [Running All with `entrypoint.sh`](#running-all-with-entrypointsh)  
+- [Running All with `run-all.sh`](#running-all-with-run-allsh)  
+- [Accessing the Web Interface](#accessing-the-web-interface)  
+- [Output](#output)  
+- [Uploading to GraphDB or qEndpoint](#uploading-to-graphdb-or-qendpoint)  
+- [Estimated Timings](#estimated-timings)  
 
 ## Prerequisites
 
@@ -50,7 +52,6 @@ Provide a 2-letter ISO country code as an argument to target that country, e.g.:
 
 Use `allCountries` to process the full dataset (requires >16GB RAM).
 
-
 ### Using Docker (Single Container)
 
 Build the container:
@@ -72,7 +73,6 @@ Increase Java heap size if needed by setting environment variable `JAVA_TOOL_OPT
 ```
 
 ## Docker Compose Pipeline (3-stage)
-
 
 Use Docker Compose to split the process into *download*, *transform*, and *upload* steps. This allows resuming failed runs without repeating previous stages.
 
@@ -106,7 +106,6 @@ docker compose -f docker-compose.upload.graphdb.yml up --build
 
 ## Running All with `entrypoint.sh`
 
-
 Run all stages sequentially on your machine by calling the combined entrypoint script:
 
 Example:
@@ -115,7 +114,6 @@ Example:
 ./entrypoint.sh FR
 ```
 This runs download, transform, and upload steps in one command.
-
 
 ## Running All with `run-all.sh`
 
@@ -130,6 +128,44 @@ Usage:
 - `COUNTRY_CODE`: ISO 2-letter country code (defaults to `DE`)
 - `UPLOAD_TARGET`: Either `qendpoint` (default) or `graphdb`
 
+## Accessing the Web Interface
+
+After running the pipeline (using `./run-all.sh`), you can access the GeoNames SPARQL Query Interface webpage to query the dataset and download the latest RDF file.
+
+### 1. Start a local web server
+
+The web interface files are in the `web/` directory.  
+You need to serve this directory over HTTP so the browser can fetch `latest.json` and dataset files.
+
+From the **root** of this repository, run:
+```bash
+python3 -m http.server 3000
+```
+
+This will serve the repository files at:
+```bash
+http://localhost:3000/
+```
+
+### 2. Open the query interface
+
+Go to:
+```bash
+http://localhost:3000/web/index.html
+```
+
+You will see the GeoNames SPARQL interface where you can:
+- Run example or custom SPARQL queries
+- Download the latest Turtle RDF file via the **Download RDF Dataset** button (top of the page)
+
+---
+
+**Shortcut (after pipeline completes):**
+```bash
+./run-all.sh DE
+python3 -m http.server 3000
+# Then open: http://localhost:3000/web/index.html
+```
 ## Output
 
 After conversion, RDF files are saved in the `output` folder, named:
