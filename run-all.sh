@@ -3,10 +3,10 @@ set -e
 COUNTRY_CODE="${1:-DE}"
 UPLOAD_TARGET="${2:-qendpoint}"
 
-echo "[1/4] Downloading..."
+echo "[1/3] Downloading..."
 COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.download.yml up --build
 
-echo "[2/4] Transforming..."
+echo "[2/3] Transforming..."
 COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.transform.yml up --build
 
 # Create latest.json for the frontend
@@ -18,7 +18,12 @@ else
   echo "No final TTL file found in output/"
 fi
 
-echo "[3/4] Uploading to $UPLOAD_TARGET..."
+echo "[3/3] Uploading to $UPLOAD_TARGET..."
+
+# Start web server first (in background)
+echo "Starting Web Server..."
+docker compose -f docker-compose.web.yml up --build -d
+
 if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
   COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.upload.yml up --build
 elif [ "$UPLOAD_TARGET" == "graphdb" ]; then
@@ -27,8 +32,5 @@ else
   echo "Unknown upload target: $UPLOAD_TARGET"
   exit 1
 fi
-
-echo "[4/4] Starting Web Server..."
-docker compose -f docker-compose.web.yml up --build -d
 
 echo "Pipeline completed successfully."

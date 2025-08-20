@@ -13,7 +13,6 @@ You can download a periodically updated RDF file from http://geonames.ams3.digit
 - [Docker Compose Pipeline (3-stage)](#docker-compose-pipeline-3-stage)  
 - [Running All with `entrypoint.sh`](#running-all-with-entrypointsh)  
 - [Running All with `run-all.sh`](#running-all-with-run-allsh)  
-- [Accessing the Web Interface](#accessing-the-web-interface)  
 - [Output](#output)  
 - [Uploading to GraphDB or qEndpoint](#uploading-to-graphdb-or-qendpoint)  
 - [Estimated Timings](#estimated-timings)  
@@ -35,10 +34,9 @@ java -Xmx8g -jar $BIN_DIR/$SPARQL_ANYTHING_JAR --query "$CONFIG_DIR/alternateNam
 
 You can run the process in three ways:
 
-- **Directly on your host**
-- **As a single Docker container**
-- **With modular Docker Compose (recommended for large datasets or crash recovery)**
-
+- **Directly on your host**  
+- **As a single Docker container**  
+- **With modular Docker Compose**
 
 ### Specify a Country Code
 
@@ -128,44 +126,14 @@ Usage:
 - `COUNTRY_CODE`: ISO 2-letter country code (defaults to `DE`)
 - `UPLOAD_TARGET`: Either `qendpoint` (default) or `graphdb`
 
-## Accessing the Web Interface
+After running the pipeline with `run-all.sh`, the web server container is started automatically, serving the GeoNames SPARQL Query Interface and dataset files.
 
-After running the pipeline (using `./run-all.sh`), you can access the GeoNames SPARQL Query Interface webpage to query the dataset and download the latest RDF file.
+You can then access the interface locally at:
 
-### 1. Start a local web server
-
-The web interface files are in the `web/` directory.  
-You need to serve this directory over HTTP so the browser can fetch `latest.json` and dataset files.
-
-From the **root** of this repository, run:
-```bash
-python3 -m http.server 3000
+```
+http://localhost:3000/index.html
 ```
 
-This will serve the repository files at:
-```bash
-http://localhost:3000/
-```
-
-### 2. Open the query interface
-
-Go to:
-```bash
-http://localhost:3000/web/index.html
-```
-
-You will see the GeoNames SPARQL interface where you can:
-- Run example or custom SPARQL queries
-- Download the latest Turtle RDF file via the **Download RDF Dataset** button (top of the page)
-
----
-
-**Shortcut (after pipeline completes):**
-```bash
-./run-all.sh DE
-python3 -m http.server 3000
-# Then open: http://localhost:3000/web/index.html
-```
 ## Output
 
 After conversion, RDF files are saved in the `output` folder, named:
