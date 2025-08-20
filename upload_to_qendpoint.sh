@@ -64,4 +64,3 @@ echo "[Step 4/4] Poll MERGE status and wait for completion"
 wait_for_merge_completion
 
 echo "Upload and merge process completed successfully."
-echo "Connecting to qEndpoint at: http://localhost:7400/"
