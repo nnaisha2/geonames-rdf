@@ -1,0 +1,6 @@
+services:
+  geonames-web:
+    build: ./web
+    container_name: geonames-web
+    ports:
+      - "3000:80"
