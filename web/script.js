@@ -1,4 +1,3 @@
-
 // Endpoint URL
 const endpointUrl = "http://localhost:8080/sparql";
 
@@ -89,22 +88,3 @@ document.querySelectorAll('.examples button').forEach(button => {
     scrollEditorToTop(yasgui.getTab());
   });
 });
-
-// Dynamically load the latest TTL file from generated JSON
-fetch('latest.json')
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  })
-  .then(data => {
-    if (data.latestFile) {
-      const rdfLink = document.getElementById('rdfDownloadLink');
-      rdfLink.href = `../output/${data.latestFile}`;
-      rdfLink.textContent = `Download ${data.latestFile}`;
-    } else {
-      console.warn("latest.json has no 'latestFile' key");
-    }
-  })
-  .catch(err => {
-    console.error("Could not load latest.json:", err);
-  });
