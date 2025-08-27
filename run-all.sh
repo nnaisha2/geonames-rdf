@@ -4,10 +4,10 @@ COUNTRY_CODE="${1:-DE}"
 UPLOAD_TARGET="${2:-qendpoint}"
 
 echo "[1/3] Downloading..."
-COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.download.yml up --build
+COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.yml up --build geonames-download
 
 echo "[2/3] Transforming..."
-COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.transform.yml up --build
+COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.yml up --build geonames-transform
 
 # Get current date in YYYY-MM-DD format
 CURRENT_DATE=$(date +%F)
@@ -61,10 +61,10 @@ echo "[3/3] Uploading to $UPLOAD_TARGET..."
 
 # Start web server first (in background)
 echo "Starting Web Server..."
-docker compose -f docker-compose.web.yml up --build -d
+docker compose -f docker-compose.yml up --build -d geonames-web
 
 if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
-  COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.upload.yml up --build
+  COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.yml up --build geonames-upload qendpoint nginx
 elif [ "$UPLOAD_TARGET" == "graphdb" ]; then
   COUNTRY_CODE=$COUNTRY_CODE docker compose -f docker-compose.upload.graphdb.yml up --build
 else

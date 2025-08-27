@@ -1,0 +1,65 @@
+services:
+  # Download 
+  geonames-download:
+    build: .
+    container_name: geonames-download
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+    environment:
+      - COUNTRY_CODE
+    command: ["./entrypoint-download.sh", "${COUNTRY_CODE}"]
+
+  # Transform
+  geonames-transform:
+    build: .
+    container_name: geonames-transform
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+    environment:
+      - COUNTRY_CODE
+    command: ["./entrypoint-transform.sh", "${COUNTRY_CODE}"]
+
+  # QEndpoint
+  qendpoint:
+    image: qacompany/qendpoint
+    container_name: qendpoint
+    ports:
+      - "7400:1234"
+    environment:
+      - MEM_SIZE=2G
+
+  # NGINX proxy (will be taken out later)
+  nginx:
+    image: nginx:alpine
+    container_name: qendpoint-nginx
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - qendpoint
+
+  # Upload
+  geonames-upload:
+    build: .
+    container_name: geonames-upload
+    environment:
+      - UPLOAD_QENDPOINT=true
+      - QENDPOINT_HOST=qendpoint
+      - COUNTRY_CODE
+    volumes:
+      - ./output:/output
+    depends_on:
+      - qendpoint
+    command: ["./entrypoint-upload.sh", "${COUNTRY_CODE}"]
+
+  # Web frontend service
+  geonames-web:
+    build: ./web
+    container_name: geonames-web
+    ports:
+      - "3000:80"
+    volumes:
+      - ./output:/usr/share/nginx/html/output

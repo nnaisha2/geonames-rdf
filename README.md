@@ -10,7 +10,7 @@ You can download a periodically updated RDF file from http://geonames.ams3.digit
 
 - [Prerequisites](#prerequisites)  
 - [Running the Conversion](#running-the-conversion)  
-- [Docker Compose Pipeline (3-stage)](#docker-compose-pipeline-3-stage)  
+- [Docker Compose Pipeline](#docker-compose-pipeline-merged)  
 - [Running All with `entrypoint.sh`](#running-all-with-entrypointsh)  
 - [Running All with `run-all.sh`](#running-all-with-run-allsh)  
 - [Output](#output)  
@@ -70,54 +70,11 @@ Increase Java heap size if needed by setting environment variable `JAVA_TOOL_OPT
 -e JAVA_TOOL_OPTIONS="-Xmx8g"
 ```
 
-## Docker Compose Pipeline (3-stage)
+## Docker Compose Pipeline
 
-Use Docker Compose to split the process into *download*, *transform*, and *upload* steps. This allows resuming failed runs without repeating previous stages.
+You can run the entire pipeline sequentially with the updated `run-all.sh` script.
 
-Run each step sequentially:
-
-1. Download GeoNames data:
-
-```bash
-docker compose -f docker-compose.download.yml up --build
-```
-
-2. Transform to RDF:
-
-```bash
-docker compose -f docker-compose.transform.yml up --build
-```
-
-3. Upload the RDF:
-
-Upload to qEndpoint (default):
-
-```bash
-docker compose -f docker-compose.upload.yml up --build
-```
-
-Or upload to GraphDB instead:
-
-```bash
-docker compose -f docker-compose.upload.graphdb.yml up --build
-```
-
-## Running All with `entrypoint.sh`
-
-Run all stages sequentially on your machine by calling the combined entrypoint script:
-
-Example:
-
-```bash
-./entrypoint.sh FR
-```
-This runs download, transform, and upload steps in one command.
-
-## Running All with `run-all.sh`
-
-The `run-all.sh` script automates the entire pipeline end to end using Docker Compose. It accepts two optional arguments: country code and upload target.
-
-Usage:
+### Running with `run-all.sh`
 
 ```bash
 ./run-all.sh [COUNTRY_CODE] [UPLOAD_TARGET]
@@ -148,14 +105,6 @@ Upload to qEndpoint (default):
 ```bash
 UPLOAD_QENDPOINT=true ./entrypoint-upload.sh DE
 ```
-
-Or using Docker Compose:
-
-```bash
-docker compose -f docker-compose.upload.yml up --build
-```
-
-Make sure the qEndpoint container is running and accessible on its configured port.
 
 Upload to GraphDB:
 
