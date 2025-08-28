@@ -8,116 +8,96 @@ You can download a periodically updated RDF file from http://geonames.ams3.digit
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)  
-- [Running the Conversion](#running-the-conversion)  
-- [Docker Compose Pipeline](#docker-compose-pipeline-merged)  
-- [Running All with `entrypoint.sh`](#running-all-with-entrypointsh)  
-- [Running All with `run-all.sh`](#running-all-with-run-allsh)  
-- [Output](#output)  
-- [Uploading to GraphDB or qEndpoint](#uploading-to-graphdb-or-qendpoint)  
-- [Estimated Timings](#estimated-timings)  
+* [Prerequisites](#prerequisites)
+* [Usage](#usage)
+* [Docker Compose Pipeline](#docker-compose-pipeline)
+* [Output](#output)
+* [Uploading to GraphDB or qEndpoint](#uploading-to-graphdb-or-qendpoint)
+* [Accessing the Web Interface](#accessing-the-web-interface)
+* [Estimated Timings](#estimated-timings)
+
+---
 
 ## Prerequisites
 
-- **Java 17+** is required for SPARQL Anything. Check with:
-  ```
-  java -version
-  ```
-- A SPARQL endpoint like GraphDB or qEndpoint for RDF upload (optional).
-If you encounter memory issues, increase Java heap size, for example:
+* **Java 17+** is required for SPARQL Anything
+* Docker and Docker Compose installed for containerized usage.
+* Optional: A SPARQL endpoint such as GraphDB or qEndpoint.
 
-```bash
-java -Xmx8g -jar $BIN_DIR/$SPARQL_ANYTHING_JAR --query "$CONFIG_DIR/alternateNames.rq" --output $DATA_DIR/alternate-names.ttl
-```
+If you encounter memory issues, increase Java heap size by setting the `JAVA_TOOL_OPTIONS` environment variable, for example:
 
-## Running the Conversion
-
-You can run the process in three ways:
-
-- **Directly on your host**  
-- **As a single Docker container**  
-- **With modular Docker Compose**
-
-### Specify a Country Code
-
-Provide a 2-letter ISO country code as an argument to target that country, e.g.:
-
-```bash
-./entrypoint-download.sh DE         # Download GeoNames data for Germany
-./entrypoint-transform.sh DE        # Transform data for Germany
-./entrypoint-upload.sh DE           # Upload data for Germany
-```
-
-Use `allCountries` to process the full dataset (requires >16GB RAM).
-
-### Using Docker (Single Container)
-
-Build the container:
-```bash
-docker build -t geonames-rdf .
-```
-Run the container with mounted volumes:
-
-```bash
-docker run --user "$(id -u):$(id -g)" -it --rm \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/output:/app/output \
-  geonames-rdf FR
-```
-
-Increase Java heap size if needed by setting environment variable `JAVA_TOOL_OPTIONS`:
 ```bash
 -e JAVA_TOOL_OPTIONS="-Xmx8g"
 ```
 
+
+
+## Usage
+
+The pipeline supports running country-specific or full-dataset transformations.
+
+* `COUNTRY_CODE`: 2-letter ISO country code (e.g., `DE`, `FR`) or `allCountries` for the entire dataset.
+
+* `UPLOAD_TARGET`: Upload destination, either `qendpoint` (default) or `graphdb`.
+
+
 ## Docker Compose Pipeline
 
-You can run the entire pipeline sequentially with the updated `run-all.sh` script.
-
-### Running with `run-all.sh`
+The entire pipeline is managed via `run.sh` and Docker Compose:
 
 ```bash
-./run-all.sh [COUNTRY_CODE] [UPLOAD_TARGET]
+./run.sh [COUNTRY_CODE] [UPLOAD_TARGET]
 ```
 
-- `COUNTRY_CODE`: ISO 2-letter country code (defaults to `DE`)
-- `UPLOAD_TARGET`: Either `qendpoint` (default) or `graphdb`
+Defaults:
 
-After running the pipeline with `run-all.sh`, the web server container is started automatically, serving the GeoNames SPARQL Query Interface and dataset files.
+* `COUNTRY_CODE=DE`
+* `UPLOAD_TARGET=qendpoint`
 
-You can then access the interface locally at:
+### What `run.sh` does:
 
+1. Downloads GeoNames data for the specified country.
+2. Converts the data to RDF Turtle format.
+3. Cleans up old outputs, versions the new output with the current date, and generates a web index page.
+4. Starts the web server container serving the SPARQL web interface and dataset files.
+5. Optionally starts an NGINX proxy (unless `--no-proxy` flag is used).
+6. Uploads the RDF data to the specified SPARQL endpoint (`qendpoint` or `graphdb`).
+
+Example to run for France and upload to GraphDB:
+
+```bash
+./run.sh FR endpoint
 ```
-http://localhost:3000/index.html
+
+To skip starting the NGINX proxy:
+
+```bash
+./run.sh FR qendpoint --no-proxy
 ```
 
 ## Output
 
-After conversion, RDF files are saved in the `output` folder, named:
+After processing, RDF Turtle files are saved under the `output/` directory, named:
+
 ```
-output/geonames_COUNTRYCODE.ttl
+geonames_COUNTRYCODE.ttl
 ```
 
 ## Uploading to GraphDB or qEndpoint
 
-Upload to qEndpoint (default):
+* **qEndpoint:** Runs on `localhost:7300` by default.
+* **GraphDB:** Typically available at `localhost:7200`.
 
-```bash
-UPLOAD_QENDPOINT=true ./entrypoint-upload.sh DE
+## Accessing the Web Interface
+
+After running the pipeline, a web UI is available to explore the data and run SPARQL queries.
+
+Access it locally at:
+
 ```
-
-Upload to GraphDB:
-
-```bash
-UPLOAD_GRAPHDB=true ./entrypoint-upload.sh DE
+http://localhost/
 ```
-
-Or with Docker Compose:
-
-```bash
-docker compose -f docker-compose.upload.graphdb.yml up --build
-```
-GraphDB is typically available at [http://localhost:7200](http://localhost:7200/).
+The UI serves the latest RDF output and provides a SPARQL query interface via the backend endpoint.
 
 ## Estimated Timings
 - RDF upload (Germany): ~4 minutes  

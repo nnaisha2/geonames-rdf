@@ -11,4 +11,5 @@ RUN curl -L https://github.com/SPARQL-Anything/sparql.anything/releases/download
 COPY . .
 
 RUN chmod +x /app/*.sh
+RUN chmod +x /app/scripts/*.sh
 

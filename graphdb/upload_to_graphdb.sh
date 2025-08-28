@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e # Exit immediately if any command fails
 
-# Configuration
-OUTPUT_DIR="$PWD/output"
-CONFIG_DIR="$PWD/config"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+
+OUTPUT_DIR="$ROOT_DIR/output"
+CONFIG_DIR="$ROOT_DIR/config"
+
 REPOSITORY_ID="geonames"
 GRAPHDB_HOST="${GRAPHDB_HOST:-localhost}"
 ADDRESS="http://${GRAPHDB_HOST}:7200/repositories/$REPOSITORY_ID"

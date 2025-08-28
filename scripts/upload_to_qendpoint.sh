@@ -6,8 +6,11 @@ set -e
 # or with custom files:
 #   ./upload_to_qendpoint.sh [DATA_RDF_FILE] [ONTOLOGY_RDF_FILE] [QENDPOINT_URL]
 
-OUTPUT_DIR="${OUTPUT_DIR:-$PWD/output}"
-CONFIG_DIR="${CONFIG_DIR:-$PWD/config}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+
+OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/output}"
+CONFIG_DIR="${CONFIG_DIR:-$ROOT_DIR/config}"
 COUNTRY_CODE="${1:-DE}"
 
 DATA_RDF_FILE="${2:-$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl}"

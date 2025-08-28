@@ -1,15 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-#set -x  
-
 COUNTRY_CODE="${1:-DE}"
 
-# Configuration
-DATA_DIR="$PWD/data"
-BIN_DIR="$PWD/bin"
-CONFIG_DIR="$PWD/config"
-OUTPUT_DIR="$PWD/output"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+
+DATA_DIR="$ROOT_DIR/data"
+BIN_DIR="$ROOT_DIR/bin"
+CONFIG_DIR="$ROOT_DIR/config"
+OUTPUT_DIR="$ROOT_DIR/output"
 SPARQL_ANYTHING_JAR="sparql-anything-v1.0.0.jar"
+CURRENT_DATE=$(date +%F)
 
 # Create directories
 echo "[transform 1/8] Creating output and bin directories for $COUNTRY_CODE..."
@@ -92,5 +93,38 @@ java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
     --load "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl" \
     --output "$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
 
+# Cleanup old files
+find "$OUTPUT_DIR" -maxdepth 1 -type f \( -name "geonames_${COUNTRY_CODE}_*.ttl" -o -name "geonames_${COUNTRY_CODE}_*.ttl.zip" \) \
+  ! -name "geonames_${COUNTRY_CODE}_${CURRENT_DATE}.ttl" \
+  ! -name "geonames_${COUNTRY_CODE}_${CURRENT_DATE}.ttl.zip" \
+  -exec rm -f {} +
+
+# Version today's output
+ttl_file="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
+if [ -f "$ttl_file" ]; then
+  versioned_ttl="geonames_${COUNTRY_CODE}_${CURRENT_DATE}.ttl"
+  cp "$ttl_file" "$OUTPUT_DIR/$versioned_ttl"
+  zip -j "$OUTPUT_DIR/${versioned_ttl}.zip" "$OUTPUT_DIR/$versioned_ttl"
+
+  cp "$ROOT_DIR/web/index.template.html" "$ROOT_DIR/web/index.html"
+  sed -i.bak "s/\[DATE\]/$CURRENT_DATE/g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
+  sed -i.bak "s|\[VERSIONED_FILE\]|${versioned_ttl}.zip|g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
+
+  curl -sSfR -z "$DATA_DIR/downloads/countryInfo.txt" -o "$DATA_DIR/downloads/countryInfo.txt" "https://download.geonames.org/export/dump/countryInfo.txt" || true
+
+  if [ "$COUNTRY_CODE" = "allCountries" ]; then
+    COUNTRY_NAME="All Countries"
+  else
+    COUNTRY_NAME=$(awk -F'\t' -v code="$COUNTRY_CODE" '$1 == code {print $5}' "$DATA_DIR/downloads/countryInfo.txt")
+    COUNTRY_NAME="${COUNTRY_NAME:-$COUNTRY_CODE}"
+  fi
+
+  sed -i.bak "s/\[COUNTRY_NAME\]/$COUNTRY_NAME/g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
+
+  echo "Updated files for $COUNTRY_CODE on $CURRENT_DATE"
+else
+  echo "No TTL file found at $ttl_file"
+  exit 1
+fi
 echo "Final output at:"
 echo "  $OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"

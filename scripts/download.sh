@@ -9,8 +9,10 @@
 set -e
 
 # Configuration
-CONFIG_DIR="$PWD/config"      
-DATA_DIR="$PWD/data"          
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+CONFIG_DIR="$ROOT_DIR/config"      
+DATA_DIR="$ROOT_DIR/data"          
 DOWNLOAD_DIR="$DATA_DIR/downloads" 
 : "${CHUNK_SIZE:=1000000}"    
 mkdir -p "$DATA_DIR" "$DOWNLOAD_DIR"
@@ -171,7 +173,8 @@ echo -e "parentId\tchildId\ttype" | cat - "$DATA_DIR/country-parent-features.csv
 rm "$DATA_DIR/country-parent-features.csv"
 
 echo "[process 15/18] Computing best English alternate names for $country_files..."
-source ./compute-bestnames.sh "$country_files"
+source "$SCRIPT_DIR/compute-bestnames.sh""$country_files"
+ 
 
 echo "[process 16/18] Splitting data with best names into chunks of $CHUNK_SIZE records each for $country_files..."
 rm -rf "$DATA_DIR"/geonames_${country_files}_*

@@ -1,92 +1,46 @@
 // Endpoint URL
-const endpointUrl = "http://localhost:8080/sparql";
+const endpointUrl = "/sparql";
 
-// SPARQL Queries
-const queryAll = `
-SELECT * WHERE {
+// Default query
+const defaultQuery = `SELECT * WHERE {
   ?s ?p ?o
-} LIMIT 10
-`;
+} LIMIT 10`;
 
-const queryPopulatedPlaces = `
-PREFIX gn: <https://www.geonames.org/ontology#>
-SELECT ?place ?name ?population
-WHERE {
-  ?place a gn:Feature ;
-         gn:name ?name ;
-         gn:population ?population .
-  FILTER(?population > 10000)
-}
-LIMIT 10
-`;
-
-const querySameADM3 = `
-PREFIX gn: <https://www.geonames.org/ontology#>
-SELECT ?place ?name
-WHERE {
-  <https://sws.geonames.org/6558092/> gn:parentADM3 ?adm3 .
-  ?place gn:parentADM3 ?adm3 ;
-         gn:name ?name .
-}
-LIMIT 10
-`;
-
-// Default query to show on load
-const defaultQuery = queryAll;
-
-// Initialize Yasgui
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
   const yasgui = new Yasgui(document.getElementById("yasgui"), {
     requestConfig: {
       endpoint: endpointUrl,
-      method: 'GET' // avoid POST
+      method: "GET",
     },
     copyEndpointOnNewTab: false,
   });
 
-  // Scroll helper 
-  function scrollEditorToTop(tab) {
-    setTimeout(() => {
-      try {
-        const cm = tab.getCodeMirror();
-        if (cm) {
-          if (typeof cm.scrollTo === "function") {
-            cm.scrollTo(0, 0); // CodeMirror 5
-          } else if (cm.scrollDOM) {
-            cm.scrollDOM.scrollTop = 0; // CodeMirror 6
-          } else if (cm.getScrollerElement) {
-            cm.getScrollerElement().scrollTop = 0; // Fallback
-          }
-        }
-      } catch (err) {
-        console.warn("Could not scroll editor to top:", err);
-      }
-    }, 50);
+  // Load default query
+  yasgui.getTab().setQuery(defaultQuery);
+
+  // Load example queries from /queries/*.rq
+  async function loadQueryFromFile(queryName) {
+    try {
+      const response = await fetch(`queries/${queryName}.rq`);
+      if (!response.ok) throw new Error(`Failed to load query: ${response.status}`);
+      return await response.text();
+    } catch (error) {
+      return `# Error loading query: ${error.message}\n${defaultQuery}`;
+    }
   }
 
-  // Load default query on page load
-  yasgui.getTab().setQuery(defaultQuery);
-  scrollEditorToTop(yasgui.getTab());
-
-  // Hook up example query buttons
-  document.querySelectorAll('.examples button').forEach(button => {
-    button.addEventListener('click', () => {
-      let query = '';
-      switch (button.dataset.example) {
-        case 'all':
-          query = queryAll;
-          break;
-        case 'places':  
-          query = queryPopulatedPlaces;
-          break;
-        case 'sameadm3':  
-          query = querySameADM3;
-          break;
-        default:
-          query = defaultQuery;
-      }
+  // Handle dropdown query selection
+  document.getElementById("exampleQueries").addEventListener("change", async (event) => {
+    const queryName = event.target.value;
+    if (!queryName) return;
+    yasgui.getTab().setQuery("# Loading query...");
+    try {
+      const query = await loadQueryFromFile(queryName);
       yasgui.getTab().setQuery(query);
-      scrollEditorToTop(yasgui.getTab());
-    });
+    } catch (error) {
+      yasgui.getTab().setQuery(
+        `# Error: Could not load query "${queryName}"\n${defaultQuery}`
+      );
+    }
   });
 });

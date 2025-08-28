@@ -95,71 +95,53 @@ main {
   border-left: 4px solid #004080;
 }
 
-.docs-block {
-  border-left: 4px solid #004080;
-}
-
-/* Examples buttons */
+/* Examples */
 .examples {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
   margin-top: 1.5rem;
 }
+.examples select {
+  padding: 10px 15px;
+  border: 2px solid #004080;
+  border-radius: 4px;
+  background-color: white;
+}
 
-.examples button {
-  margin-right: 15px;
-  padding: 10px 18px;
-  background-color: #004080;
-  color: #fff;
-  border: none;
+/* Download buttons (global) */
+.download-options a,
+.docs-block a,
+#downloadBtn {
+  display: inline-block;
+  background: #004080;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  transition: background 0.3s;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.3s;
   cursor: pointer;
-  border-radius: 4px;
-  font-weight: 600;
+}
+.download-options a:hover,
+.docs-block a:hover,
+#downloadBtn:hover {
+  background: #003366;
+}
+
+/* Download format selector */
+#downloadFormat {
+  padding: 10px 15px;
+  border: 2px solid #004080;
+  border-radius: 6px;
+  background-color: white;
+  margin-right: 10px;
   font-size: 0.95rem;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0,64,128,0.3);
 }
-
-.examples button:hover,
-.examples button:focus {
-  background-color: #003366;
-  box-shadow: 0 4px 10px rgba(0,51,102,0.5);
-}
-
-/* Download options */
-.download-options a {
-  display: inline-block;
-  background:#004080;
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  transition: background 0.3s;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.download-options a:hover {
-  background: #004080;
-  text-decoration: none;
-}
-
-.docs-block a {
-  display: inline-block;
-  background: #004080;
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  transition: background 0.3s;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.docs-block a:hover {
-  background: #004080;
-  text-decoration: none;
+.download-controls {
+  margin-bottom: 1rem;
 }
 
 /* YASGUI container */
@@ -167,8 +149,6 @@ main {
   height: 70vh;
   border: 1px solid #ccc;
   border-radius: 6px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-  background: #fff;
   margin-top: 1rem;
 }
 

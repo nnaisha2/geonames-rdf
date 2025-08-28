@@ -15,13 +15,10 @@ set -e
 #
 
 # --- Configuration Section ---
-DATA_DIR="$PWD/data"
 country_files="${1:-DE}"
-
-# --- Step 0: Combine All Alternate Names Chunks ---
-echo " Combining all alternateNamesV2_${country_files}_*.csv chunks..."
-combined_altfile="$DATA_DIR/alternateNamesV2_${country_files}.csv"
-first_chunk=$(ls "$DATA_DIR"/alternateNamesV2_"${country_files}"_*.csv 2>/dev/null | head -1)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$SCRIPT_DIR/.."
+DATA_DIR="$ROOT_DIR/data"
 
 if [ -z "$first_chunk" ]; then
     echo "ERROR: No alternateNamesV2_${country_files}_*.csv files found in $DATA_DIR"

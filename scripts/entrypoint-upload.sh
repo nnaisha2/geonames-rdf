@@ -6,6 +6,7 @@ UPLOAD=${UPLOAD:-true}
 UPLOAD_QENDPOINT=${UPLOAD_QENDPOINT:-false}
 QENDPOINT_HOST=${QENDPOINT_HOST:-qendpoint}
 QENDPOINT_PORT=1234
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "[UPLOAD] Starting upload for country code: $COUNTRY_CODE ..."
 
@@ -16,10 +17,10 @@ if [ "$UPLOAD_QENDPOINT" = "true" ]; then
     sleep 5
   done
   echo "[3b/3] Uploading to qEndpoint ..."
-  source ./upload_to_qendpoint.sh "$COUNTRY_CODE"
+  source "$SCRIPT_DIR/upload_to_qendpoint.sh" "$COUNTRY_CODE"
 elif [ "$UPLOAD_GRAPHDB" = "true" ]; then
   echo "[3a/3] Uploading to GraphDB ..."
-  source ./upload_to_graphdb.sh "$COUNTRY_CODE"
+  source "$SCRIPT_DIR/../graphdb/upload_to_graphdb.sh" "$COUNTRY_CODE"
 else
   echo "No upload target specified. Skipping upload."
 fi

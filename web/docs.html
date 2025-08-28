@@ -2,163 +2,466 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GeoNames Project Documentation</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="icon" href="fortiss-icon.ico" />
+    <style>
+      /* Base styles */
+      :root {
+        --primary: #004080;
+        --primary-light: #4d79b3;
+        --primary-dark: #00264d;
+        --secondary: #f8f9fa;
+        --accent: #ff6b00;
+        --text: #333;
+        --text-light: #6c757d;
+        --border: #dee2e6;
+        --success: #28a745;
+        --warning: #ffc107;
+        --info: #17a2b8;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background-color: #f5f7fa;
+      }
 
+      header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        max-width: 1400px;
+        color: white;
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        margin: 2rem auto 1rem;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .header-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .logo h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+      nav ul {
+        display: flex;
+        list-style: none;
+        gap: 1.5rem;
+      }
+      header nav a {
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: color 0.3s ease;
+      }
+      nav a:hover,
+      nav a.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+      }
+
+      .main-container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        display: flex;
+        gap: 2rem;
+        padding: 0 1rem;
+      }
+
+      .sidebar {
+        flex: 0 0 240px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        padding: 2rem;
+        height: fit-content;
+        position: sticky;
+        top: 6rem;
+      }
+      .sidebar h3 {
+        color: var(--primary);
+        margin-bottom: 2rem;
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 1rem;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+      }
+      .sidebar-nav li {
+        margin-bottom: 0.5rem;
+      }
+      .sidebar-nav a {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: var(--text);
+        text-decoration: none;
+        border-left: 4px solid transparent;
+        border-radius: 4px;
+        transition: all 0.3s;
+      }
+      .sidebar-nav a:hover,
+      .sidebar-nav a.active {
+        background-color: #e9f1fb;
+        border-left-color: var(--primary);
+        color: var(--primary);
+        font-weight: 500;
+      }
+
+      .content {
+        flex: 1;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        padding: 3rem 4rem;
+        min-width: 0;
+      }
+      .content-section {
+        margin-bottom: 3rem;
+        scroll-margin-top: 6rem;
+      }
+      .content-section h2 {
+        color: var(--primary);
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-light);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .card {
+        background: var(--secondary);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid var(--primary);
+      }
+
+      .table-container {
+        overflow-x: auto;
+        margin: 1.5rem 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      th,
+      td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        background-color: var(--primary);
+        color: white;
+      }
+      tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+      tr:hover {
+        background-color: #e9ecef;
+      }
+
+      code {
+        background-color: #f1f3f5;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: "Consolas", monospace;
+        color: var(--primary-dark);
+      }
+      pre {
+        background-color: #2b303b;
+        color: #dee2e6;
+        padding: 1rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+        font-family: "Consolas", monospace;
+        line-height: 1.5;
+      }
+
+      .note {
+        border-left: 4px solid var(--primary);
+        background-color: #e9f1fb;
+        color: var(--primary-dark);
+        padding: 0.75rem 1rem;
+        margin-top: 1rem;
+        font-style: italic;
+        border-radius: 4px;
+        font-weight: 500;
+        max-width: 800px;
+      }
+
+      footer {
+        background: var(--primary-dark);
+        color: white;
+        text-align: center;
+        padding: 2rem;
+        margin-top: 3rem;
+      }
+
+      @media (max-width: 1000px) {
+        .main-container {
+          flex-direction: column;
+        }
+        .sidebar {
+          position: static;
+          margin-bottom: 1.5rem;
+          width: 100%;
+        }
+      }
+
+      .back-to-top {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: var(--primary);
+        color: white;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s;
+        z-index: 99;
+      }
+      .back-to-top:hover {
+        background: var(--primary-dark);
+        transform: translateY(-3px);
+      }
+    </style>
+  </head>
   <body>
     <header>
-      <h1>GeoNames SPARQL Interface Documentation</h1>
-      <nav>
-        <ul>
-          <a href="index.html">Home</a>
-        </ul>
-      </nav>
+      <div class="header-container">
+        <div class="logo"><h1>Documentation</h1></div>
+        <nav>
+          <ul><li><a href="index.html">Home</a></li></ul>
+        </nav>
+      </div>
     </header>
 
-    <main>
-      <article>
-        <section>
+    <div class="main-container">
+      <aside class="sidebar">
+        <h3>Documentation</h3>
+        <ul class="sidebar-nav">
+          <li><a href="#intro" class="active"> Introduction</a></li>
+          <li><a href="#overview">GeoNames</a></li>
+          <li><a href="#comparisons">Formats Compared</a></li>
+          <li><a href="#Limitations">Known Limitations</a></li>
+          <li><a href="#references">References</a></li>
+        </ul>
+      </aside>
+
+      <main class="content">
+        <section id="intro" class="content-section">
           <h2>Introduction</h2>
           <p>
-            This documentation outlines key observations, known limitations, and
-            conventions related to the GeoNames data dumps and ontologies used
-            in the GeoNames SPARQL interface.
+            Welcome to the documentation for the SPARQL Interface project based
+            on GeoNames CSV dumps. This documentation outlines key observations,
+            known limitations, and conventions related to the GeoNames data
+            dumps and ontologies used in our implementation.
           </p>
         </section>
 
-        <section>
-          <h2>
-            1. Use of <code>dcterms:modified</code> vs. Absence of
-            <code>dcterms:created</code> in CSV Dumps
-          </h2>
+        <section id="overview" class="content-section">
+          <h2>GeoNames Overview</h2>
           <p>
-            The <code>dcterms:created</code> property is
-            <strong>not included</strong> in the GeoNames CSV dump files. Only
-            <code>dcterms:modified</code> is present to indicate the last update
-            date.
+            The
+            <a href="https://download.geonames.org/export/" target="_blank" rel="noopener">GeoNames</a>
+            geographical database is a large, free, and open dataset containing
+            over 25 million geographical names and 11 million unique features.
           </p>
+          
+        </section>
+        <section id="comparisons" class="content-section">
+           <div class="card">
+            <h3>Comparing GeoNames Formats:</h3>
+          <p>
+            GeoNames information can be accessed in different ways depending on the intended use case:
+            through its interactive <strong>map view</strong>, machine-readable <strong>about.rdf</strong>
+            descriptions, or bulk <strong>CSV dump files</strong>.
+            Each provides the same underlying data but optimized for different consumers.
+          </p>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Format</th>
+                  <th>Strengths</th>
+                  <th>Limitations</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Map View (Web)</td>
+                  <td>User-friendly interface; easy navigation; shows hierarchy, nearby places, and alternate names</td>
+                  <td>Not well-suited for large-scale data processing; requires manual browsing</td>
+                </tr>
+                <tr>
+                  <td>about.rdf</td>
+                  <td>Linked Data compatible; machine-readable (RDF/XML); ideal for semantic web applications</td>
+                  <td>Single-record per request; high latency for bulk queries; less efficient for large datasets</td>
+                </tr>
+                <tr>
+                  <td>CSV Dumps</td>
+                  <td>Lightweight, compact; bulk access; easy conversion to databases or RDF</td>
+                  <td>Lacks some semantic richness; interpretation of codes required; no built-in linked data relations</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
-        <section>
-          <h2>
-            2. Namespace Prefix <code>gn</code> Variations Across RDF Files
-          </h2>
+        <section id="Limitations" class="content-section">
+          <h2>Known Limitations</h2>
+
+          <h3>1. dcterms:modified vs. dcterms:created</h3>
+          <p>
+            The <code>dcterms:created</code> property is not included in the
+            GeoNames CSV dump files; therefore, it does not appear in the
+            generated Turtle file. Only <code>dcterms:modified</code> is
+            available to indicate the last update date.
+          </p>
+
+          <h3>2. Namespace Prefix Variations</h3>
+          <p>
+            The <code>gn</code> prefix in GeoNames RDF files is inconsistent in
+            terms of protocol:
+          </p>
           <ul>
             <li>
-              The <code>gn</code> prefix in GeoNames RDF files is not consistent
-              in protocol:
-              <ul>
-                <li>
-                  The ontology file (<code>ontology_v3.3.rdf</code>) uses
-                  <code>https://www.geonames.org/ontology#</code>.
-                </li>
-                <li>
-                  The mappings file (<code>mappings_v3.01.rdf</code>) and place
-                  descriptions (<code>about.rdf</code>) use
-                  <code>http://www.geonames.org/ontology#</code>.
-                </li>
-              </ul>
+              The ontology file uses
+              <code>https://www.geonames.org/ontology#</code>
             </li>
             <li>
-              To ensure security and consistency, this project adopts the
-              <code>https://www.geonames.org/ontology#</code> namespace as
-              specified by the ontology file.
+              The mappings file and place descriptions use
+              <code>http://www.geonames.org/ontology#</code>
             </li>
           </ul>
-        </section>
+          <p>
+            For security and consistency, this project adopts the
+            <code>https://www.geonames.org/ontology#</code> namespace.
+          </p>
 
-        <section>
-          <h2>3. Inconsistencies in <code>gn:alternateName</code> Usage</h2>
+          <h3>3. Inconsistencies in alternateName Usage</h3>
           <p>
             The <code>gn:alternateName</code> property usage varies across
             GeoNames RDF datasets:
           </p>
           <ul>
-            <li>Some alternate names lack language tags.</li>
+            <li>Some alternate names lack language tags</li>
+            <li>Language tag formats vary depending on the source dataset</li>
             <li>
-              Language tags vary reflecting source dataset differences (e.g.,
-              <code>de</code>, <code>en</code>).
-            </li>
-            <li>
-              These inconsistencies are inherited from the original data
-              sources.
+              These inconsistencies are inherited directly from the original
+              data sources
             </li>
           </ul>
         </section>
 
-        <section>
-          <h2>4. Handling Population Values Set to Zero</h2>
-          <p>Population data in GeoNames has these characteristics:</p>
-          <ul>
-            <li>
-              Many CSV dumps list <code>population</code> as <code>0</code> when
-              data is missing, not truly zero population.
-            </li>
-            <li>
-              The <code>about.rdf</code> files omit the population property if
-              unknown.
-            </li>
-            <li>
-              Our Turtle-format output excludes
-              <code>gn:population</code> triples with a value of zero to prevent
-              misunderstanding.
-            </li>
-          </ul>
-          <p>
-            <strong>Example:</strong>
-            <a
-              href="https://sws.geonames.org/2867711/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              München (Uebigau-Wahrenbrück)
-            </a>
-            shows a population of <code>0</code> in CSV, no value in RDF,
-            despite external sources reporting an estimated 16 residents.
-          </p>
-        </section>
-
-        <section>
+        <section id="references" class="content-section">
           <h2>References</h2>
           <ul>
             <li>
-              <a
-                href="https://www.geonames.org/ontology/ontology_v3.3.rdf"
-                target="_blank"
-                rel="noopener noreferrer"
+              <a href="https://www.geonames.org/ontology/ontology_v3.3.rdf"
+                >GeoNames Ontology v3.3</a
               >
-                GeoNames Ontology v3.3
-              </a>
             </li>
             <li>
-              <a
-                href="https://www.geonames.org/ontology/mappings_v3.01.rdf"
-                target="_blank"
-                rel="noopener noreferrer"
+              <a href="https://www.geonames.org/ontology/mappings_v3.01.rdf"
+                >GeoNames Mappings v3.01</a
               >
-                GeoNames Mappings v3.01
-              </a>
             </li>
             <li>
-              <a
-                href="https://sws.geonames.org/3220837/about.rdf"
-                target="_blank"
-                rel="noopener noreferrer"
+              <a href="https://sws.geonames.org/3220837/about.rdf"
+                >GeoNames About RDF Example</a
               >
-                GeoNames About RDF Example
-              </a>
             </li>
             <li>Local file: <code>geonames_DE.ttl</code></li>
-            <li>GeoNames CSV dump data</li>
+            <li>
+              <a href="https://download.geonames.org/export/"
+                >GeoNames CSV dump data</a
+              >
+            </li>
           </ul>
         </section>
-      </article>
-    </main>
+      </main>
+    </div>
 
-    <footer>
-      <p>&copy; 2025</p>
-    </footer>
+   <a href="#" class="back-to-top"><i class="fas fa-arrow-up"></i></a>
+
+    <footer><p>&copy; 2025</p></footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const backToTopButton = document.querySelector(".back-to-top");
+        window.addEventListener("scroll", () => {
+          backToTopButton.style.display = window.scrollY > 300 ? "flex" : "none";
+        });
+        backToTopButton.addEventListener("click", e => {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        // Active nav links
+        const sections = document.querySelectorAll(".content-section");
+        const navLinks = document.querySelectorAll(".sidebar-nav a");
+
+        window.addEventListener("scroll", () => {
+          let current = "";
+          sections.forEach(section => {
+            if (window.scrollY >= section.offsetTop - 120) {
+              current = section.getAttribute("id");
+            }
+          });
+          navLinks.forEach(link => {
+            link.classList.remove("active");
+            if (link.getAttribute("href").substring(1) === current) {
+              link.classList.add("active");
+            }
+          });
+        });
+
+        // Smooth scroll
+        navLinks.forEach(link => {
+          link.addEventListener("click", e => {
+            e.preventDefault();
+            const targetSection = document.querySelector(link.getAttribute("href"));
+            window.scrollTo({ top: targetSection.offsetTop - 80, behavior: "smooth" });
+          });
+        });
+      });
+    </script>
   </body>
 </html>

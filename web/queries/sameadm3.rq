@@ -1,0 +1,8 @@
+PREFIX gn: <https://www.geonames.org/ontology#>
+SELECT ?place ?name
+WHERE {
+  <https://sws.geonames.org/6558092/> gn:parentADM3 ?adm3 .
+  ?place gn:parentADM3 ?adm3 ;
+         gn:name ?name .
+}
+LIMIT 10
