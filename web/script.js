@@ -29,18 +29,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Handle dropdown query selection
-  document.getElementById("exampleQueries").addEventListener("change", async (event) => {
-    const queryName = event.target.value;
-    if (!queryName) return;
-    yasgui.getTab().setQuery("# Loading query...");
-    try {
-      const query = await loadQueryFromFile(queryName);
-      yasgui.getTab().setQuery(query);
-    } catch (error) {
-      yasgui.getTab().setQuery(
-        `# Error: Could not load query "${queryName}"\n${defaultQuery}`
-      );
-    }
-  });
+// Handle dropdown query selection
+document.getElementById("exampleQueries").addEventListener("change", async (event) => {
+  const queryName = event.target.value;
+  if (!queryName) return;
+
+  try {
+    const query = await loadQueryFromFile(queryName);
+    // Instead of replacing current tab, open a new one with that query
+    yasgui.addTab(true).setQuery(query);
+  } catch (error) {
+    yasgui.addTab(true).setQuery(
+      `# Error: Could not load query "${queryName}"\n${defaultQuery}`
+    );
+  }
+});
 });
