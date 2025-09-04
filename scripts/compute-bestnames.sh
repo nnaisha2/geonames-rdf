@@ -20,6 +20,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 DATA_DIR="$ROOT_DIR/data"
 
+# --- Step 0: Combine All Alternate Names Chunks ---
+echo " Combining all alternateNamesV2_${country_files}_*.csv chunks..."
+combined_altfile="$DATA_DIR/alternateNamesV2_${country_files}.csv"
+first_chunk=$(ls "$DATA_DIR"/alternateNamesV2_"${country_files}"_*.csv 2>/dev/null | head -1)
+
 if [ -z "$first_chunk" ]; then
     echo "ERROR: No alternateNamesV2_${country_files}_*.csv files found in $DATA_DIR"
     exit 1

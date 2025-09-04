@@ -1,5 +1,5 @@
 #set -x # uncomment for debugging
-#!/bin/sh
+#!/bin/bash
 
 # This script downloads and processes Geonames data for mapping purposes.
 # It handles country-specific data downloads, creates foreign keys, chunks data,
@@ -173,7 +173,7 @@ echo -e "parentId\tchildId\ttype" | cat - "$DATA_DIR/country-parent-features.csv
 rm "$DATA_DIR/country-parent-features.csv"
 
 echo "[process 15/18] Computing best English alternate names for $country_files..."
-source "$SCRIPT_DIR/compute-bestnames.sh""$country_files"
+source "$SCRIPT_DIR/compute-bestnames.sh" "$country_files"
  
 
 echo "[process 16/18] Splitting data with best names into chunks of $CHUNK_SIZE records each for $country_files..."
