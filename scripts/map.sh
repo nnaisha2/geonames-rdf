@@ -55,7 +55,7 @@ fi
 echo "[transform 6/8] Processing places for $COUNTRY_CODE..."
 for f in "$DATA_DIR"/geonames_${COUNTRY_CODE}_*.csv; do
     echo "  - Processing $f..."
-    java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
+    java -Xmx4g -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
         --query "$CONFIG_DIR/places.rq" \
         -v "SOURCE=$f" \
         --load "$DATA_DIR/admin-codes.ttl" \
@@ -88,7 +88,7 @@ fi
 
 # Optimize output format
 echo "Optimizing output format for $COUNTRY_CODE..."
-java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
+java -Xmx4g -jar  "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
     --query "$CONFIG_DIR/consolidate.rq" \
     --load "$OUTPUT_DIR/geonames_${COUNTRY_CODE}_pre_optimization.ttl" \
     --output "$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
@@ -121,7 +121,7 @@ if [ -f "$ttl_file" ]; then
 
   sed -i.bak "s/\[COUNTRY_NAME\]/$COUNTRY_NAME/g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
 
-  echo "Updated files for $COUNTRY_CODE on $CURRENT_DATE"
+  echo "Updated index.html for $COUNTRY_CODE with country name '$COUNTRY_NAME' on $CURRENT_DATE"
 else
   echo "No TTL file found at $ttl_file"
   exit 1

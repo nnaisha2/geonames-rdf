@@ -51,7 +51,7 @@ WHERE {
       fx:null-string "" ;
       fx:csv.delimiter "\t" ;
       fx:csv.headers true ;
-      fx:slice "10000"
+      fx:slice "5000"
     .
 
     # Minimal required fields
