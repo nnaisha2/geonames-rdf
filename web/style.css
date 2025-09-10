@@ -87,10 +87,6 @@ main {
   transition: transform 0.3s;
 }
 
-.download-block:hover, .docs-block:hover {
-  transform: translateY(-5px);
-}
-
 .download-block {
   border-left: 4px solid #004080;
 }

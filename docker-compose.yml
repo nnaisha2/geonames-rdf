@@ -7,8 +7,8 @@ services:
       - ./data:/app/data
       - ./output:/app/output
     environment:
-      - COUNTRY_CODE
-    command: ["./scripts/entrypoint-download.sh", "${COUNTRY_CODE}"]
+      - COUNTRY_CODE=${COUNTRY_CODE:-DE}
+    command: sh -c "./scripts/entrypoint-download.sh $COUNTRY_CODE"
 
   # Transform
   geonames-transform:
@@ -19,8 +19,32 @@ services:
       - ./output:/app/output
       - ./web:/app/web
     environment:
-      - COUNTRY_CODE
-    command: ["./scripts/entrypoint-transform.sh", "${COUNTRY_CODE}"]
+      - COUNTRY_CODE=${COUNTRY_CODE:-DE}
+    command: sh -c "./scripts/entrypoint-transform.sh $COUNTRY_CODE"
+
+  # Upload
+  geonames-upload:
+    build: .
+    container_name: geonames-upload
+    environment:
+      - UPLOAD_QENDPOINT=true
+      - QENDPOINT_HOST=qendpoint
+      - COUNTRY_CODE=${COUNTRY_CODE:-DE}
+    volumes:
+      - ./output:/output
+    depends_on:
+      - qendpoint
+    command: sh -c "./scripts/entrypoint-upload.sh $COUNTRY_CODE"
+
+  # Web frontend service
+  geonames-web:
+    build: ./web
+    container_name: geonames-web
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./output:/usr/share/nginx/html/output
 
   # QEndpoint
   qendpoint:
@@ -43,28 +67,4 @@ services:
       - qendpoint
       - geonames-web
     profiles:
-      - proxy  #only start if the "proxy" profile is enabled
-
-  # Upload
-  geonames-upload:
-    build: .
-    container_name: geonames-upload
-    environment:
-      - UPLOAD_QENDPOINT=true
-      - QENDPOINT_HOST=qendpoint
-      - COUNTRY_CODE
-    volumes:
-      - ./output:/output
-    depends_on:
-      - qendpoint
-    command: ["./scripts/entrypoint-upload.sh", "${COUNTRY_CODE}"]
-
-  # Web frontend service
-  geonames-web:
-    build: ./web
-    container_name: geonames-web
-    restart: always
-    ports:
-      - "8080:80"
-    volumes:
-      - ./output:/usr/share/nginx/html/output
+      - proxy  # only start if the "proxy" profile is enabled

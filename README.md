@@ -1,30 +1,47 @@
 # GeoNames RDF
 
-This repository contains shell scripts that download [GeoNames data dumps](https://download.geonames.org/export/dump/)
-and convert them to RDF using [SPARQL Anything](https://github.com/SPARQL-Anything/sparql.anything),
-resulting in a `geonames_COUNTRYCODE.ttl` file that you can load into a SPARQL server.
+This repository provides a complete pipeline to transform [GeoNames data dumps](https://download.geonames.org/export/dump/) into RDF Turtle (`.ttl`) format using [SPARQL Anything](https://github.com/SPARQL-Anything/sparql.anything). The output can be uploaded to a SPARQL endpoint and browsed via a simple web interface.
 
-You can download a periodically updated RDF file from http://geonames.ams3.digitaloceanspaces.com/geonames.zip (420 MB).
+
 
 ## Table of Contents
 
+* [Overview](#overview)
 * [Prerequisites](#prerequisites)
+* [Installing Docker and Docker Compose](#installing-docker-and-docker-compose)
 * [Usage](#usage)
 * [Docker Compose Pipeline](#docker-compose-pipeline)
 * [Output](#output)
-* [Uploading to GraphDB or qEndpoint](#uploading-to-graphdb-or-qendpoint)
 * [Accessing the Web Interface](#accessing-the-web-interface)
 * [Estimated Timings](#estimated-timings)
 
----
+## Overview
+
+This project automates the following:
+
+1. **Downloads** GeoNames data for a country or the full dataset.
+2. **Converts** it to RDF Turtle format using SPARQL Anything.
+3. **Generates** a browsable web interface and optionally:
+4. **Uploads** the result to a local SPARQL endpoint such as GraphDB or qEndpoint.
+
 
 ## Prerequisites
 
-* **Java 17+** is required for SPARQL Anything
-* Docker and Docker Compose installed for containerized usage.
-* Optional: A SPARQL endpoint such as GraphDB or qEndpoint.
+To use this pipeline, you need:
 
-If you encounter memory issues, increase Java heap size by setting the `JAVA_TOOL_OPTIONS` environment variable, for example:
+* **Java 17+** (only if not using Docker)
+* **Docker & Docker Compose**
+  Docker is required for containerized operation. Follow the [Installation section](#installing-docker-and-docker-compose) if it's not already set up.
+
+> *Docker Compose is used via the `docker compose` command, which requires the Docker Compose plugin.*
+
+To run Docker without `sudo`, add your user to the `docker` group:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+If Java runs out of memory during processing, you can increase heap size by setting:
 
 ```bash
 -e JAVA_TOOL_OPTIONS="-Xmx8g"
@@ -32,73 +49,130 @@ If you encounter memory issues, increase Java heap size by setting the `JAVA_TOO
 
 
 
+## Installing Docker and Docker Compose
+
+### On Linux (Ubuntu/Debian)
+
+```bash
+# Update system and install dependencies
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
+
+# Add Docker’s official GPG key
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Set up the stable repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker and Docker Compose plugin
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io \
+  docker-buildx-plugin docker-compose-plugin
+```
+
+Verify the installation:
+
+```bash
+docker --version
+docker compose version
+```
+
+### On macOS
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+2. It includes Docker Engine and the Compose plugin.
+
+### On Windows
+
+1. Install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+2. Ensure **WSL2 backend** is enabled during setup.
+3. Docker Compose is included.
+
+
+
 ## Usage
 
-The pipeline supports running country-specific or full-dataset transformations.
+You can run the pipeline for:
 
-* `COUNTRY_CODE`: 2-letter ISO country code (e.g., `DE`, `FR`) or `allCountries` for the entire dataset.
+* A **specific country** (using its 2-letter ISO code, e.g., `DE`, `FR`)
+* The **full dataset** (`allCountries`)
 
-* `UPLOAD_TARGET`: Upload destination, either `qendpoint` (default) or `graphdb`.
+You may also choose where to **upload** the data:
+
+* `qendpoint` (default)
+* `graphdb`
+
 
 
 ## Docker Compose Pipeline
 
-The entire pipeline is managed via `run.sh` and Docker Compose:
+The main entry point is the `run.sh` script:
 
 ```bash
-./run.sh [COUNTRY_CODE] [UPLOAD_TARGET]
+./run.sh [COUNTRY_CODE] [UPLOAD_TARGET] [--no-proxy]
 ```
 
-Defaults:
+### Parameters
 
-* `COUNTRY_CODE=DE`
-* `UPLOAD_TARGET=qendpoint`
+* `COUNTRY_CODE`: 2-letter ISO code or `allCountries` (default: `DE`)
+* `UPLOAD_TARGET`: `qendpoint` (default) or `graphdb`
+* `--no-proxy`: optional flag to skip launching the NGINX proxy
 
-### What `run.sh` does:
+### Example commands
 
-1. Downloads GeoNames data for the specified country.
-2. Converts the data to RDF Turtle format.
-3. Cleans up old outputs, versions the new output with the current date, and generates a web index page.
-4. Starts the web server container serving the SPARQL web interface and dataset files.
-5. Optionally starts an NGINX proxy (unless `--no-proxy` flag is used).
-6. Uploads the RDF data to the specified SPARQL endpoint (`qendpoint` or `graphdb`).
-
-Example to run for France and upload to GraphDB:
+Run for France and upload to GraphDB:
 
 ```bash
-./run.sh FR endpoint
+./run.sh FR graphdb
 ```
 
-To skip starting the NGINX proxy:
+Run without NGINX:
 
 ```bash
 ./run.sh FR qendpoint --no-proxy
 ```
 
+
+
 ## Output
 
-After processing, RDF Turtle files are saved under the `output/` directory, named:
+The RDF Turtle output will be saved in the `output/` directory:
 
 ```
-geonames_COUNTRYCODE.ttl
+output/
+└── geonames_COUNTRYCODE.ttl
 ```
 
-## Uploading to GraphDB or qEndpoint
+These are ready for loading into a SPARQL database.
 
-* **qEndpoint:** Runs on `localhost:7300` by default.
-* **GraphDB:** Typically available at `localhost:7200`.
+
 
 ## Accessing the Web Interface
 
-After running the pipeline, a web UI is available to explore the data and run SPARQL queries.
-
-Access it locally at:
+Once the pipeline runs, a web interface becomes available:
 
 ```
 http://localhost/
 ```
-The UI serves the latest RDF output and provides a SPARQL query interface via the backend endpoint.
+
+From there, you can:
+
+* Browse generated RDF files
+* Run SPARQL queries
+* Inspect individual records
+
+
 
 ## Estimated Timings
-- RDF upload (Germany): ~4 minutes  
-- Full pipeline (Germany): ~10 minutes
+
+Approximate processing durations (may vary by machine):
+
+| Step                | Germany Example |
+| ------------------- | --------------- |
+| RDF Conversion      | \~4 minutes     |
+| Full Pipeline Total | \~10 minutes    |

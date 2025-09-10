@@ -4,3 +4,4 @@ fuseki/*
 output/*
 graphdb-data/*
 web/index.html
+.env
