@@ -6,18 +6,33 @@ const defaultQuery = `SELECT * WHERE {
   ?s ?p ?o
 } LIMIT 10`;
 
+// Query name mapping
+const queryNames = {
+  'all': 'All Triples',
+  'populated_places': 'Populated Places',
+  'sameadm3': 'Same ADM3 Places',
+  'cities': 'Cities List'
+};
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Initializing Yasgui with endpoint:", endpointUrl);
 
   let yasgui;
 
   try {
+    // Clear localStorage for YASGUI to prevent quota issues
+    clearYasguiStorage();
+    
     yasgui = new Yasgui(document.getElementById("yasgui"), {
       requestConfig: {
         endpoint: endpointUrl,
         method: "GET",
       },
       copyEndpointOnNewTab: false,
+      // Disable persistence to prevent localStorage issues
+      persistence: false,
+      persistenceId: null
+      
     });
     
     // Load default query
@@ -25,9 +40,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const tab = yasgui.getTab();
     tab.setEndpoint(endpointUrl); 
     tab.setQuery(defaultQuery);
+    tab.setName('Default Query'); // Set initial tab name
   } catch (err) {
     console.error("Failed to initialize Yasgui:", err);
     return;
+  }
+
+  // Function to clear YASGUI storage
+  function clearYasguiStorage() {
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('yasgui')) {
+          localStorage.removeItem(key);
+        }
+      });
+      console.log('Cleared YASGUI localStorage items');
+    } catch (e) {
+      console.warn('Could not clear localStorage:', e);
+    }
   }
 
   // Load example queries from /queries/*.rq
@@ -51,5 +81,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const newTab = yasgui.addTab(true);
     newTab.setEndpoint(endpointUrl);
     newTab.setQuery(query);
+    
+    // Set tab name based on the query
+    const tabName = queryNames[queryName] || queryName;
+    newTab.setName(tabName);
+    
+    // Reset dropdown selection
+    event.target.value = '';
   });
 });

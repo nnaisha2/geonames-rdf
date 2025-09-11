@@ -51,7 +51,7 @@ services:
     image: qacompany/qendpoint
     container_name: qendpoint
     ports:
-      - "7300:1234"
+      - "7400:1234"
     environment:
       - MEM_SIZE=2G
     restart: always
