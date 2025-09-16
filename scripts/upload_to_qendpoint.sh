@@ -13,7 +13,7 @@ OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/output}"
 CONFIG_DIR="${CONFIG_DIR:-$ROOT_DIR/config}"
 COUNTRY_CODE="${1:-DE}"
 
-DATA_RDF_FILE="${2:-$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl}"
+DATA_RDF_FILE="${2:-$OUTPUT_DIR/geonames_${COUNTRY_CODE}_merged.ttl}"
 ONTOLOGY_RDF_FILE="${3:-$OUTPUT_DIR/ontology_v3.3.rdf}"
 
 QENDPOINT_HOST="${QENDPOINT_HOST:-localhost}"
@@ -54,16 +54,14 @@ wait_for_merge_completion() {
 }
 
 # Start process
-echo "[Step 1/4] Upload Ontology RDF"
-upload_file "$ONTOLOGY_RDF_FILE"
 
-echo "[Step 2/4] Upload Data RDF"
+echo "[Step 1/3] Upload Data RDF"
 upload_file "$DATA_RDF_FILE"
 
-echo "[Step 3/4] Trigger MERGE operation"
+echo "[Step 2/3] Trigger MERGE operation"
 trigger_merge
 
-echo "[Step 4/4] Poll MERGE status and wait for completion"
+echo "[Step 3/3] Poll MERGE status and wait for completion"
 wait_for_merge_completion
 
 echo "Upload and merge process completed successfully."

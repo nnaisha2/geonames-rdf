@@ -29,6 +29,9 @@ docker compose -f docker-compose.yml up --build geonames-download
 echo "[2/3] Transforming..."
 docker compose -f docker-compose.yml up --build geonames-transform
 
+echo "[2.5/3] Merging RDF files..."
+docker compose -f docker-compose.yml up --build geonames-merge
+
 echo "[3/3] Uploading to $UPLOAD_TARGET..."
 
 # Start geonames-web (always)

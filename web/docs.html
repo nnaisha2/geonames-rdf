@@ -355,25 +355,24 @@
             available to indicate the last update date.
           </p>
 
-          <h3>2. Namespace Prefix Variations</h3>
+          <h3>2. Ontology URI Protocol Conflict (http vs https)</h3>
           <p>
-            The <code>gn</code> prefix in GeoNames RDF files is inconsistent in
-            terms of protocol:
+            The official <code>ontology_v3.3.rdf</code> from GeoNames uses
+            <code>https://www.geonames.org/ontology#</code> as its base URI for
+            classes and properties. However, most instance data (e.g., from
+            <code>sws.geonames.org</code>) uses the
+            <code>http://</code> version, and tools like
+            <a href="https://yasgui.triply.cc/" target="_blank">YASGUI</a>
+            default to <code>http://</code>.
           </p>
-          <ul>
-            <li>
-              The ontology file uses
-              <code>https://www.geonames.org/ontology#</code>
-            </li>
-            <li>
-              The mappings file and place descriptions use
-              <code>http://www.geonames.org/ontology#</code>
-            </li>
-          </ul>
           <p>
-            For security and consistency, this project adopts the
-            <code>https://www.geonames.org/ontology#</code> namespace.
+            To ensure consistency and query compatibility, this project uses a
+            <strong>modified version</strong> of the GeoNames ontology (v3.3) in
+            which all URIs were changed from <code>https</code> to
+            <code>http</code>. This file is named
+            <code>ontology_v3.3_modified.rdf</code>
           </p>
+    
 
           <h3>3. Inconsistencies in alternateName Usage</h3>
           <p>
@@ -397,6 +396,10 @@
               <a href="https://www.geonames.org/ontology/ontology_v3.3.rdf"
                 >GeoNames Ontology v3.3</a
               >
+            </li>
+           <li>
+             <a href="../output/ontology_v3.3_modified.rdf"
+              >ontology_v3.3_modified.rdf</a>
             </li>
             <li>
               <a href="https://www.geonames.org/ontology/mappings_v3.01.rdf"

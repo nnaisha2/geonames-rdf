@@ -25,13 +25,13 @@ if [ ! -f "$BIN_DIR/$SPARQL_ANYTHING_JAR" ]; then
 fi
 
 # Download the Geonames ontology
-echo "[transform 3/8] Downloading Geonames ontology..."
-if [ ! -f "$OUTPUT_DIR/ontology_v3.3.rdf" ]; then
-    curl -sSfL "https://download.geonames.org/ontology/ontology_v3.3.rdf" -o "$OUTPUT_DIR/ontology_v3.3.rdf"
-    echo "  - ontology_v3.3.rdf downloaded."
-else
-    echo "  - ontology_v3.3.rdf already present."
-fi
+echo "[transform 3/8] Skip Downloading Geonames ontology..."
+#if [ ! -f "$OUTPUT_DIR/ontology_v3.3.rdf" ]; then
+   # curl -sSfL "https://www.geonames.org/ontology/ontology_v3.3.rdf" -o "$OUTPUT_DIR/ontology_v3.3.rdf"
+    #echo "  - ontology_v3.3.rdf downloaded."
+#else
+    #echo "  - ontology_v3.3.rdf already present."
+#fi
 
 # Process admin codes (all levels)
 echo "[transform 4/8] Processing admin codes for $COUNTRY_CODE..."

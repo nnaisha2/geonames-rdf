@@ -6,7 +6,7 @@ ENV OUTPUT_DIR=/output
 WORKDIR /app
 RUN mkdir bin
 
-RUN apt-get update && apt-get install zip -y && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y zip raptor2-utils && rm -rf /var/lib/apt/lists/*
 RUN curl -L https://github.com/SPARQL-Anything/sparql.anything/releases/download/$SPARQL_ANYTHING_VERSION/$SPARQL_ANYTHING_JAR -o bin/$SPARQL_ANYTHING_JAR
 COPY . .
 

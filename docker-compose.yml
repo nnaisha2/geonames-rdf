@@ -22,7 +22,21 @@ services:
       - COUNTRY_CODE=${COUNTRY_CODE:-DE}
     command: sh -c "./scripts/entrypoint-transform.sh $COUNTRY_CODE"
 
-  # Upload
+  # Merge ontology and data
+  geonames-merge:
+    build: .
+    container_name: geonames-merge
+    volumes:
+      - ./output:/data
+    entrypoint: /bin/sh
+    command: |
+      -c "rapper -i rdfxml -o ntriples /data/ontology_v3.3_modified.rdf > /data/ontology.nt &&
+      rapper -i turtle -o ntriples /data/geonames_${COUNTRY_CODE}.ttl > /data/data.nt &&
+      cat /data/ontology.nt /data/data.nt > /data/merged.nt &&
+      rapper -i ntriples -o turtle /data/merged.nt > /data/geonames_${COUNTRY_CODE}_merged.ttl &&
+      rm /data/ontology.nt /data/data.nt /data/merged.nt"
+ 
+ # Upload
   geonames-upload:
     build: .
     container_name: geonames-upload

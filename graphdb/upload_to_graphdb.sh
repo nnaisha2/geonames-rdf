@@ -16,7 +16,7 @@ COUNTRY_CODE="${1:-DE}"           # 1st argument: Country code, default to DE
 USERNAME_WITH_PASSWORD="${2:-}"  # 2nd argument: Optional "-u user:pass"
 
 RDF_FILE="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
-ONTOLOGY_FILE="$OUTPUT_DIR/ontology_v3.3.rdf"
+ONTOLOGY_FILE="$OUTPUT_DIR/ontology_v3.3_modified.rdf"
 
 GRAPH_GEONAMES="https://sws.geonames.org"
 GRAPH_ONTOLOGY="https://www.geonames.org/ontology"
