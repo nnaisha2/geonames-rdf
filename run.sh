@@ -21,8 +21,11 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 COUNTRY_CODE="${1:-DE}"
 UPLOAD_TARGET="${2:-qendpoint}"
+ENDPOINT_URL="${3:-https://geonames.need.energy/sparql}"
 
 echo "COUNTRY_CODE=$COUNTRY_CODE" > .env
+echo "UPLOAD_TARGET=$UPLOAD_TARGET" >> .env
+echo "ENDPOINT_URL=$ENDPOINT_URL" >> .env
 echo "[1/3] Downloading..."
 docker compose -f docker-compose.yml up --build geonames-download
 

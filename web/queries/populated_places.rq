@@ -1,4 +1,4 @@
-PREFIX gn: <https://www.geonames.org/ontology#>
+PREFIX gn: <http://www.geonames.org/ontology#>
 SELECT ?place ?name ?population
 WHERE {
   ?place a gn:Feature ;

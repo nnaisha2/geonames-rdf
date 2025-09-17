@@ -108,6 +108,7 @@ if [ -f "$ttl_file" ]; then
 
   cp "$ROOT_DIR/web/index.template.html" "$ROOT_DIR/web/index.html"
   sed -i.bak "s/\[DATE\]/$CURRENT_DATE/g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
+  sed -i.bak "s|\[ENDPOINT_URL\]|$ENDPOINT_URL|g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
   sed -i.bak "s|\[VERSIONED_FILE\]|${versioned_ttl}.zip|g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
 
   curl -sSfR -z "$DATA_DIR/downloads/countryInfo.txt" -o "$DATA_DIR/downloads/countryInfo.txt" "https://download.geonames.org/export/dump/countryInfo.txt" || true

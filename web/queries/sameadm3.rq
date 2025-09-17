@@ -1,4 +1,4 @@
-PREFIX gn: <https://www.geonames.org/ontology#>
+PREFIX gn: <http://www.geonames.org/ontology#>
 SELECT ?place ?name
 WHERE {
   <https://sws.geonames.org/6558092/> gn:parentADM3 ?adm3 .

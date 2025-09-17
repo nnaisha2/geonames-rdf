@@ -1,5 +1,5 @@
 // Endpoint URL
-const endpointUrl = `${window.location.origin}/sparql`;
+const endpointUrl = document.getElementById("endpointInput")?.value || `${window.location.origin}/sparql`;
 
 // Default query
 const defaultQuery = `SELECT * WHERE {
@@ -14,16 +14,18 @@ const queryNames = {
   'cities': 'Cities List'
 };
 
+// Global reference to YASGUI
+window.yasgui = null;
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("Initializing Yasgui with endpoint:", endpointUrl);
-
-  let yasgui;
 
   try {
     // Clear localStorage for YASGUI to prevent quota issues
     clearYasguiStorage();
-    
-    yasgui = new Yasgui(document.getElementById("yasgui"), {
+
+    // Initialize YASGUI
+    window.yasgui = new Yasgui(document.getElementById("yasgui"), {
       requestConfig: {
         endpoint: endpointUrl,
         method: "GET",
@@ -34,13 +36,13 @@ document.addEventListener("DOMContentLoaded", function () {
       persistenceId: null
       
     });
-    
-    // Load default query
-    // Set endpoint on current tab
-    const tab = yasgui.getTab();
+
+    // Load default query in current tab
+    const tab = window.yasgui.getTab();
     tab.setEndpoint(endpointUrl); 
     tab.setQuery(defaultQuery);
-    tab.setName('Default Query'); // Set initial tab name
+    tab.setName('Default Query');
+
   } catch (err) {
     console.error("Failed to initialize Yasgui:", err);
     return;
@@ -78,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!queryName) return;
 
     const query = await loadQueryFromFile(queryName);
-    const newTab = yasgui.addTab(true);
+    const newTab = window.yasgui.addTab(true);
     newTab.setEndpoint(endpointUrl);
     newTab.setQuery(query);
     
