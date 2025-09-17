@@ -1,4 +1,4 @@
-PREFIX gn: <https://www.geonames.org/ontology#>  
+PREFIX gn: <http://www.geonames.org/ontology#>  
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>   
 PREFIX dcterms: <http://purl.org/dc/terms/>         
 PREFIX fx: <http://sparql.xyz/facade-x/ns/>     

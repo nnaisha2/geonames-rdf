@@ -45,7 +45,7 @@
       <rdfs:comment xml:lang="en">This ontology file was modified back to use 'http' instead of 'https' in the 'gn' namespace, primarily because the 'about.rdf' files from 'https://sws.geonames.org' still use 'http' for 'gn' and secondarily because both 'https://prefix.cc/gn' and 'https://prefix.zazuko.com/prefix/gn:' still list 'http' for 'gn'.</rdfs:comment>
       <rdfs:isDefinedBy rdf:resource="https://www.geonames.org/ontology/ontology_v3.3.rdf"/>
       <owl:priorVersion rdf:resource="https://www.geonames.org/ontology/ontology_v3.2.rdf"/>
-      <owl:versionInfo xml:lang="en">Version 3.3 - 2022-01-30</owl:versionInfo>
+      <owl:versionInfo xml:lang="en">Version 3.3 - 2022-01-30 - modified (2025-09-10)</owl:versionInfo>
       <foaf:homepage rdf:resource="https://www.geonames.org/ontology/documentation.html"/>
       <dcterms:issued>2006-10-14</dcterms:issued>
       <dcterms:modified>2022-01-30</dcterms:modified>

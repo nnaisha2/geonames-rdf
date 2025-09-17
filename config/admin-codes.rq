@@ -1,6 +1,6 @@
 PREFIX apf: <http://jena.apache.org/ARQ/property#>
 PREFIX fx: <http://sparql.xyz/facade-x/ns/>
-PREFIX gn: <https://www.geonames.org/ontology#>
+PREFIX gn: <http://www.geonames.org/ontology#>
 PREFIX xyz: <http://sparql.xyz/facade-x/data/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
