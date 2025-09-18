@@ -15,6 +15,26 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css"
       rel="stylesheet"
     />
+
+    <!-- Visualization styling -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      .yasr-plugin-container {
+        height: 460px;
+        position: relative;
+      }
+      .yasr-plugin-container .fill {
+        position: absolute;
+        inset: 0;
+      }
+      .yasr-plugin-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -92,6 +112,9 @@
             </option>
             <option value="sameadm3">Places with the Same Parent ADM3</option>
             <option value="cities">List Cities</option>
+            <option value="points">Map: Feature Points</option>
+            <option value="edges">Graph: Parent ADM3 Edges</option>
+            <option value="count_by_class">Chart: Count by Class</option>
           </select>
         </div>
         <input
@@ -109,6 +132,10 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@zazuko/yasgui@4.5.0/build/yasgui.min.js"></script>
+    <!-- Visualization libs -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

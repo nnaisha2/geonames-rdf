@@ -1,0 +1,12 @@
+PREFIX gn: <http://www.geonames.org/ontology#>
+SELECT ?label (COUNT(*) AS ?value) WHERE {
+  ?s a gn:Feature ;
+     gn:featureCode ?code .
+  # Derive label from the IRI fragment (e.g., P.PPL)
+  BIND( IF(CONTAINS(STR(?code), "#"),
+           STRAFTER(STR(?code), "#"),
+           STR(?code)) AS ?label )
+}
+GROUP BY ?label
+ORDER BY DESC(?value)
+LIMIT 20
