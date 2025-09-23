@@ -2,8 +2,6 @@
 
 This repository provides a complete pipeline to transform [GeoNames data dumps](https://download.geonames.org/export/dump/) into RDF Turtle (`.ttl`) format using [SPARQL Anything](https://github.com/SPARQL-Anything/sparql.anything). The output can be uploaded to a SPARQL endpoint and browsed via a simple web interface.
 
-
-
 ## Table of Contents
 
 * [Overview](#overview)
@@ -23,7 +21,6 @@ This project automates the following:
 2. **Converts** it to RDF Turtle format using SPARQL Anything.
 3. **Generates** a browsable web interface and optionally:
 4. **Uploads** the result to a local SPARQL endpoint such as GraphDB or qEndpoint.
-
 
 ## Prerequisites
 
@@ -46,8 +43,6 @@ If Java runs out of memory during processing, you can increase heap size by sett
 ```bash
 -e JAVA_TOOL_OPTIONS="-Xmx8g"
 ```
-
-
 
 ## Installing Docker and Docker Compose
 
@@ -93,8 +88,6 @@ docker compose version
 2. Ensure **WSL2 backend** is enabled during setup.
 3. Docker Compose is included.
 
-
-
 ## Usage
 
 You can run the pipeline for:
@@ -107,20 +100,22 @@ You may also choose where to **upload** the data:
 * `qendpoint` (default)
 * `graphdb`
 
-
+You can also specify a **remote SPARQL endpoint URL**.  
+If omitted, it defaults to `https://geonames.need.energy/sparql`.
 
 ## Docker Compose Pipeline
 
 The main entry point is the `run.sh` script:
 
 ```bash
-./run.sh [COUNTRY_CODE] [UPLOAD_TARGET] [--no-proxy]
+./run.sh [COUNTRY_CODE] [UPLOAD_TARGET] [ENDPOINT_URL] [--no-proxy]
 ```
 
 ### Parameters
 
 * `COUNTRY_CODE`: 2-letter ISO code or `allCountries` (default: `DE`)
 * `UPLOAD_TARGET`: `qendpoint` (default) or `graphdb`
+* `ENDPOINT_URL`: optional custom SPARQL endpoint (default: `https://geonames.need.energy/sparql`)
 * `--no-proxy`: optional flag to skip launching the NGINX proxy
 
 ### Example commands
@@ -131,13 +126,17 @@ Run for France and upload to GraphDB:
 ./run.sh FR graphdb
 ```
 
+Run with a custom SPARQL endpoint:
+
+```
+./run.sh FR qendpoint https://my-sparql-endpoint.org/sparql
+```
+
 Run without NGINX:
 
 ```bash
 ./run.sh FR qendpoint --no-proxy
 ```
-
-
 
 ## Output
 
@@ -150,8 +149,6 @@ output/
 
 These are ready for loading into a SPARQL database.
 
-
-
 ## Accessing the Web Interface
 
 Once the pipeline runs, a web interface becomes available:
@@ -163,10 +160,10 @@ http://localhost/
 From there, you can:
 
 * Browse generated RDF files
-* Run SPARQL queries
+* Run SPARQL queries (against the configured SPARQL endpoint)
 * Inspect individual records
 
-
+If you specified a custom SPARQL endpoint URL via the third argument to `run.sh`, the web interface will use that endpoint for queries.
 
 ## Estimated Timings
 

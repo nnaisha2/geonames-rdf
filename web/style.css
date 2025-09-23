@@ -97,14 +97,6 @@ main {
   margin-top: 1.5rem;
 }
 
-.examples label {
-  margin-bottom: 0;
-  white-space: nowrap;
-  font-weight: 600;
-  height: 40px;
-  display: flex;
-  align-items: center;
-}
 
 .examples select {
   padding: 10px 15px;
@@ -356,11 +348,6 @@ footer {
     align-items: stretch;
   }
   
-  .examples label {
-    height: auto;
-    margin-bottom: 0.5rem;
-  }
-  
   .examples button {
     margin-right: 0;
     margin-bottom: 10px;
@@ -376,4 +363,117 @@ footer {
   word-wrap: break-word;
   word-break: break-word;
   white-space: normal;
+}
+
+/* DOCS PAGE SPECIFIC STYLES */
+/* Content sections */
+.content-section {
+  margin-bottom: 2.5rem;
+  scroll-margin-top: 6rem;
+}
+
+.content-section h2 {
+  color: #004080;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #004080;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Card style for blocks */
+.card {
+  background: #f8f9fa;
+  border-left: 4px solid #004080;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Table styling */
+.table-container {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+th {
+  background-color: #004080;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+tr:hover {
+  background-color: #e9ecef;
+}
+
+/* Code styling */
+code {
+  background-color: #f1f3f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: "Consolas", monospace;
+  color: #00264d;
+}
+
+pre {
+  background-color: #2b303b;
+  color: #dee2e6;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-family: "Consolas", monospace;
+  line-height: 1.5;
+}
+
+/* Note box */
+.note {
+  border-left: 4px solid #004080;
+  background-color: #e9f1fb;
+  color: #00264d;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+  font-style: italic;
+  border-radius: 4px;
+  font-weight: 500;
+  max-width: 800px;
+}
+
+/* Back-to-top button */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #004080;
+  color: white;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  transition: all 0.3s;
+  z-index: 99;
+}
+
+.back-to-top:hover {
+  background: #003366;
+  transform: translateY(-3px);
 }
