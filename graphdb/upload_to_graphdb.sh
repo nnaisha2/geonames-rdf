@@ -19,7 +19,7 @@ RDF_FILE="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
 ONTOLOGY_FILE="$OUTPUT_DIR/ontology_v3.3_modified.rdf"
 
 GRAPH_GEONAMES="https://sws.geonames.org"
-GRAPH_ONTOLOGY="https://www.geonames.org/ontology"
+GRAPH_ONTOLOGY="http://www.geonames.org/ontology"
 
 # Step 1: Delete existing repository (if any)
 echo "[1/6] Removing '$REPOSITORY_ID' repository for country code: $COUNTRY_CODE."
