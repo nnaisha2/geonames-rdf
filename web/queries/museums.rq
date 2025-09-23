@@ -1,0 +1,33 @@
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/>
+PREFIX gn: <http://www.geonames.org/ontology#>
+
+SELECT ?feature ?name ?latitude ?longitude ?distance_in_metre ?wikipediaArticle
+WHERE {
+  VALUES ?city { <https://sws.geonames.org/6559171/> }
+
+  ?city wgs84_pos:lat ?city_latitude ;
+        wgs84_pos:long ?city_longitude .
+
+  # Find museums in Munich according to GeoNames.
+  ?feature gn:parentFeature ?city ;
+           gn:featureCode gn:S.MUS ;
+           gn:name ?name ;
+           wgs84_pos:lat ?latitude ;
+           wgs84_pos:long ?longitude .
+
+  # Optionally, provide links to the museums’ English Wikipedia articles.
+  OPTIONAL {
+    ?feature gn:wikipediaArticle ?wikipediaArticle .
+    FILTER (STRSTARTS(STR(?wikipediaArticle), 'https://en.wikipedia.org'))
+  }
+
+  # Order the museums by their distance to the city center.
+  BIND(STRDT(CONCAT('POINT(', STR(?city_longitude), ' ', STR(?city_latitude), ')'), geo:wktLiteral) AS ?city_point)
+  BIND(STRDT(CONCAT('POINT(', STR(?longitude), ' ', STR(?latitude), ')'), geo:wktLiteral) AS ?point)
+  BIND(geof:distance(?city_point, ?point, uom:metre) AS ?distance_in_metre)
+}
+ORDER BY ?distance_in_metre
+LIMIT 100

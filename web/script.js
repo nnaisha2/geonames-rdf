@@ -1,20 +1,17 @@
 // Endpoint URL
 const endpointUrl = document.getElementById("endpointInput")?.value || `${window.location.origin}/sparql`;
 
-// Default query
-const defaultQuery = `SELECT * WHERE {
-  ?s ?p ?o
-} LIMIT 10`;
+// Default query name (file to load)
+const defaultQueryName = 'all';
 
 // Query names mapping
 const queryNames = {
-  'all': 'All Triples',
-  'populated_places': 'Populated Places',
-  'sameadm3': 'Same ADM3 Places',
-  'cities': 'Cities List',
-  'points': 'Map: Feature points',
-  'edges': 'Graph: parentADM3 edges',
-  'count_by_class': 'Chart: count by class'
+  'all': 'All triples (limit 10)',
+  'population': 'Municipalities with a population above 1 million',
+  'municipalities': 'Municipalities in a rural district',
+  'hierarchy': 'Administrative hierarchy above a city',
+  'museums': 'Museums in a city',
+  'graph_administrative_subdivisions': 'Administrative subdivisions (graph)'
 };
 
 // Utility function: Parses rows from Yasr result
@@ -234,7 +231,7 @@ function clearYasguiStorage() {
   }
 }
 
-// Load query from filE
+// Load query from file
 async function loadQueryFromFile(queryName) {
   try {
     const response = await fetch(`queries/${queryName}.rq`);
@@ -242,7 +239,7 @@ async function loadQueryFromFile(queryName) {
     return await response.text();
   } catch (error) {
     console.error(`Failed to load query "${queryName}":`, error);
-    return `# Error loading query: ${error.message}\n${defaultQuery}`;
+    return `# Error loading query: ${error.message}\nSELECT * WHERE { ?s ?p ?o } LIMIT 10`;
   }
 }
 
@@ -261,11 +258,13 @@ document.addEventListener("DOMContentLoaded", () => {
       persistenceId: null
     });
 
-    const defaultTab = window.yasgui.getTab();
-    defaultTab.setEndpoint(endpointUrl);
-    defaultTab.setQuery(defaultQuery);
-    defaultTab.setName('Default Query');
-    applyPluginSettingsToTab(defaultTab);
+    loadQueryFromFile(defaultQueryName).then(defaultQueryText => {
+      const defaultTab = window.yasgui.getTab();
+      defaultTab.setEndpoint(endpointUrl);
+      defaultTab.setQuery(defaultQueryText);
+      defaultTab.setName(queryNames[defaultQueryName] || 'Default Query');
+      applyPluginSettingsToTab(defaultTab);
+    });
   } catch (err) {
     console.error("Failed to initialize Yasgui:", err);
     return;
@@ -285,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tabName = queryNames[queryName] || queryName;
     newTab.setName(tabName);
     applyPluginSettingsToTab(newTab);
+
     event.target.value = '';
   });
 });

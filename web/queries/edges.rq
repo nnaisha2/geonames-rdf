@@ -1,8 +1,0 @@
-PREFIX gn: <http://www.geonames.org/ontology#>
-SELECT ?s ?p ?o ?sLabel ?oLabel WHERE {
-  VALUES ?p { gn:parentADM3 } 
-  ?s ?p ?o .
-  OPTIONAL { ?s gn:name ?sLabel }
-  OPTIONAL { ?o gn:name ?oLabel }
-}
-LIMIT 30

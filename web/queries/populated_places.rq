@@ -1,9 +1,0 @@
-PREFIX gn: <http://www.geonames.org/ontology#>
-SELECT ?place ?name ?population
-WHERE {
-  ?place a gn:Feature ;
-         gn:name ?name ;
-         gn:population ?population .
-  FILTER(?population > 10000)
-}
-LIMIT 10

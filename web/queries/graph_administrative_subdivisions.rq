@@ -1,0 +1,14 @@
+PREFIX gn: <http://www.geonames.org/ontology#>
+
+SELECT ?subject ?predicate ?object ?subjectLabel ?objectLabel
+WHERE {
+  VALUES ?predicate { gn:parentFeature }
+
+  ?subject gn:parentFeature ?object ;
+           gn:featureClass gn:A ;
+           gn:parentFeature* <https://sws.geonames.org/2861322/> .
+
+  OPTIONAL { ?subject gn:name ?subjectLabel . }
+  OPTIONAL { ?object gn:name ?objectLabel . }
+}
+LIMIT 1000

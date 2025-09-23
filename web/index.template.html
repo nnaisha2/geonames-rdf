@@ -106,15 +106,20 @@
           <label for="exampleQueries">Example Queries:</label>
           <select id="exampleQueries">
             <option value="">Select an example query</option>
-            <option value="all">All Triples (limit 10)</option>
-            <option value="populated_places">
-              Population Over 10,000 (limit 10)
+            <option value="all">All triples (limit 10)</option>
+            <option value="population">
+              Municipalities with a population above 1 million
             </option>
-            <option value="sameadm3">Places with the Same Parent ADM3</option>
-            <option value="cities">List Cities</option>
-            <option value="points">Map: Feature Points</option>
-            <option value="edges">Graph: Parent ADM3 Edges</option>
-            <option value="count_by_class">Chart: Count by Class</option>
+            <option value="municipalities">
+              Municipalities in a rural district
+            </option>
+            <option value="hierarchy">
+              Administrative hierarchy above a city
+            </option>
+            <option value="museums">Museums in a city</option>
+            <option value="graph_administrative_subdivisions">
+              Administrative subdivisions (graph)
+            </option>
           </select>
         </div>
         <input

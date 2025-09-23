@@ -1,0 +1,64 @@
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gn: <http://www.geonames.org/ontology#>
+
+SELECT ?feature ?name ?name_de ?municipalityKey ?featureCode ?featureCodeLabel ?latitude ?longitude
+WHERE {
+  # Get all features that are Munich itself or its transitive parents.
+  ?feature a gn:Feature ;
+  ^gn:parentFeature* <https://sws.geonames.org/2867714/> ;
+   gn:featureCode ?featureCode ;
+   wgs84_pos:lat ?latitude ;
+   wgs84_pos:long ?longitude .
+
+  # Get the label of each GeoNames feature in the results.
+  ?featureCode skos:prefLabel ?featureCodeLabel .
+  FILTER (langMatches('en', lang(?featureCodeLabel)))
+
+  # Here, the municipality key is optional because Germany and the feature of Munich as the seat of a first-order administrative division do not have municipality keys.
+  OPTIONAL { ?feature wdt:P439 ?municipalityKey . }
+
+  # Optionally, get the longest official name in English or as a fallback the longest alternative name in English.
+  OPTIONAL {
+    ?feature gn:officialName ?officialName_en_1 .
+    FILTER (langMatches('en', lang(?officialName_en_1)))
+    FILTER NOT EXISTS {
+      ?feature gn:officialName ?officialName_en_2 .
+      FILTER (langMatches('en', lang(?officialName_en_2)) && STRLEN(STR(?officialName_en_1)) < STRLEN(STR(?officialName_en_2)))
+    }
+  }
+  OPTIONAL {
+    ?feature gn:alternateName ?alternateName_en_1 .
+    FILTER (langMatches('en', lang(?alternateName_en_1)))
+    FILTER NOT EXISTS {
+      ?feature gn:alternateName ?alternateName_en_2 .
+      FILTER (langMatches('en', lang(?alternateName_en_2)) && STRLEN(STR(?alternateName_en_1)) < STRLEN(STR(?alternateName_en_2)))
+    }
+  }
+  BIND(COALESCE(?officialName_en_1, ?alternateName_en_1) AS ?name)
+
+  # Optionally, get the longest official name in German or as a fallback the longest alternative name in German.
+  OPTIONAL {
+    ?feature gn:officialName ?officialName_de_1 .
+    FILTER (langMatches('de', lang(?officialName_de_1)))
+    FILTER NOT EXISTS {
+      ?feature gn:officialName ?officialName_de_2 .
+      FILTER (langMatches('de', lang(?officialName_de_2)) && STRLEN(STR(?officialName_de_1)) < STRLEN(STR(?officialName_de_2)))
+    }
+  }
+  OPTIONAL {
+    ?feature gn:alternateName ?alternateName_de_1 .
+    FILTER (langMatches('de', lang(?alternateName_de_1)))
+    FILTER NOT EXISTS {
+      ?feature gn:alternateName ?alternateName_de_2 .
+      FILTER (langMatches('de', lang(?alternateName_de_2)) && STRLEN(STR(?alternateName_de_1)) < STRLEN(STR(?alternateName_de_2)))
+    }
+  }
+  BIND(COALESCE(?officialName_de_1, ?alternateName_de_1) AS ?name_de)
+
+  # Used to order the results from the highest to lowest level in the hierarchy.
+  ?feature gn:parentFeature+ ?parentFeature .
+}
+GROUP BY ?feature ?name ?name_de ?municipalityKey ?featureCode ?featureCodeLabel ?latitude ?longitude
+ORDER BY (COUNT(?parentFeature))
