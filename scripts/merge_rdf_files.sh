@@ -5,23 +5,19 @@ COUNTRY_CODE="${1:-DE}"
 
 OUTPUT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../output" && pwd)"
 ONTOLOGY="$OUTPUT_DIR/ontology_v3.3_modified.rdf"       # Ontology RDF file in RDF/XML format
-DATA="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"         # Geonames data file in Turtle format for the given country
+DATA="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"         # Geonames data file in Turtle format
 MERGED="$OUTPUT_DIR/geonames_${COUNTRY_CODE}_merged.ttl" # Output merged Turtle file
 
-# Convert the ontology RDF/XML file to N-Triples format and save as ontology.nt
-rapper -i rdfxml -o ntriples "$ONTOLOGY" > "$OUTPUT_DIR/ontology.nt"
+# Convert RDF/XML ontology to Turtle
+rapper -i rdfxml -o turtle "$ONTOLOGY" > "$OUTPUT_DIR/ontology.ttl"
 
-# Convert the geonames Turtle file to N-Triples format and save as data.nt
-rapper -i turtle -o ntriples "$DATA" > "$OUTPUT_DIR/data.nt"
+# Concatenate ontology and data
+cat "$OUTPUT_DIR/ontology.ttl" "$DATA" > "$OUTPUT_DIR/merged_raw.ttl"
 
-# Concatenate the two N-Triples files into one merged N-Triples file
-cat "$OUTPUT_DIR/ontology.nt" "$OUTPUT_DIR/data.nt" > "$OUTPUT_DIR/merged.nt"
+# Normalize the merged file with rapper
+rapper -i turtle -o turtle "$OUTPUT_DIR/merged_raw.ttl" > "$MERGED"
 
-# Convert the merged N-Triples file back to Turtle format for easier readability/use
-rapper -i ntriples -o turtle "$OUTPUT_DIR/merged.nt" > "$MERGED"
+# Clean up temporary files
+rm "$OUTPUT_DIR/ontology.ttl" "$OUTPUT_DIR/merged_raw.ttl"
 
-# Clean up intermediate N-Triples files used in the merging process
-rm "$OUTPUT_DIR/ontology.nt" "$OUTPUT_DIR/data.nt" "$OUTPUT_DIR/merged.nt"
-
-# Print a confirmation message with the location of the merged output file
 echo "Merged file created: $MERGED"
