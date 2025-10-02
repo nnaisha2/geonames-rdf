@@ -14,7 +14,6 @@ CONSTRUCT {
   # --- Feature triples ---
   ?uri a gn:Feature ;
     rdfs:isDefinedBy ?definitionDoc ;
-    # gn:asciiname ?asciiname ;
     gn:countryCode ?countryCode ;
     gn:featureClass ?featureClass ;
     gn:featureCode ?featureCode ;
@@ -28,7 +27,8 @@ CONSTRUCT {
     gn:parentADM2 ?parentAdm2 ;
     gn:parentADM3 ?parentAdm3 ;
     gn:parentADM4 ?parentAdm4 ;
-    #gn:elevation ?elevation ;
+    #wgs84_pos:elevation ?elevation ;
+    wgs84_pos:dem ?demDecimal;
     gn:childrenFeatures ?child ;
     gn:parentFeature ?finalParentFeature ;
     gn:name ?bestName .
@@ -61,6 +61,7 @@ WHERE {
        xyz:feature%20class ?featureClassString ;
        xyz:latitude ?latitude ;
        xyz:longitude ?longitude ;
+       xyz:dem ?dem ;
        xyz:bestName ?bestName ;
        xyz:population ?populationRaw .
     BIND(xsd:integer(?populationRaw) AS ?population)
@@ -84,6 +85,7 @@ WHERE {
          "" ) AS ?featureCode )
     BIND(xsd:decimal(?latitude) AS ?latitudeDecimal)
     BIND(xsd:decimal(?longitude) AS ?longitudeDecimal)
+    BIND(xsd:decimal(?dem ) AS ?demDecimal)
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/contains.rdf")) AS ?child)
     BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", 
          REPLACE(REPLACE(LCASE(?asciiname), ",", ""), " ", "-"), ".html")) AS ?locationMapUri)
