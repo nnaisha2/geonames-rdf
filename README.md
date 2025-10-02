@@ -27,8 +27,7 @@ This project automates the following:
 To use this pipeline, you need:
 
 * **Java 17+** (only if not using Docker)
-* **Docker & Docker Compose**
-  Docker is required for containerized operation. Follow the [Installation section](#installing-docker-and-docker-compose) if it's not already set up.
+* **Docker & Docker Compose** are required for containerized operation. Follow the [Installation section](#installing-docker-and-docker-compose) if it's not already set up.
 
 > *Docker Compose is used via the `docker compose` command, which requires the Docker Compose plugin.*
 
@@ -120,22 +119,22 @@ The main entry point is the `run.sh` script:
 
 ### Example commands
 
-Run for France and upload to GraphDB:
+Run for Germany and upload to GraphDB:
 
 ```bash
-./run.sh FR graphdb
+./run.sh DE graphdb
 ```
 
 Run with a custom SPARQL endpoint:
 
 ```
-./run.sh FR qendpoint https://my-sparql-endpoint.org/sparql
+./run.sh DE qendpoint https://my-sparql-endpoint.org/sparql
 ```
 
 Run without NGINX:
 
 ```bash
-./run.sh FR qendpoint --no-proxy
+./run.sh DE qendpoint --no-proxy
 ```
 
 ## Output
@@ -167,9 +166,9 @@ If you specified a custom SPARQL endpoint URL via the third argument to `run.sh`
 
 ## Estimated Timings
 
-Approximate processing durations (may vary by machine):
-
-| Step                | Germany Example |
+| Step                | Country code = DE |
 | ------------------- | --------------- |
-| RDF Conversion      | \~4 minutes     |
-| Full Pipeline Total | \~10 minutes    |
+| RDF Conversion      | ~6 minutes      |
+| RDF Merge           | ~3 minutes      |
+| RDF upload          | ~5 minutes      |
+| Full Pipeline Total | ~14 minutes     |

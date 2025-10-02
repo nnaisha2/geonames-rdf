@@ -64,14 +64,17 @@ WHERE {
       ) AS ?dbpediaResource
     )
 
-    # Language-tagged alternate names
+    #alternate names
     BIND(
-  IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
-    IF(BOUND(?pref) && ?pref = "1",
-      ?undef,  # not alternateName, will be officialName
+     IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+       IF(BOUND(?pref) && ?pref = "1",
+       ?undef,  # not alternateName, will be officialName
       STRLANG(STR(?nameValue), ?lang)
-    ),
+      ),
+      IF((!BOUND(?lang) || STRLEN(STR(?lang)) = 0) && (!BOUND(?pref) || ?pref != "1"),
+      STR(?nameValue),
     ?undef
+      )
   ) AS ?alternateName
 )
 

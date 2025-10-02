@@ -81,4 +81,4 @@ services:
       - qendpoint
       - geonames-web
     profiles:
-      - proxy  # only start if the "proxy" profile is enabled
+      - proxy

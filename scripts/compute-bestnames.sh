@@ -1,18 +1,9 @@
 #!/bin/bash
 set -e
-#
-# compute-bestnames.sh
-#
+
 # This script extracts the best English alternate names from GeoNames alternateNamesV2 files,
 # and joins them with the main geonamesplus dataset, adding a 'bestName' column.
-# It OVERWRITES geonamesplus_<COUNTRY_CODE>.csv with the new version, so downstream scripts
-# (like map.sh) continue to work without changes.
 
-#
-# Output:
-#   - bestnames_<COUNTRY_CODE>.txt 
-#   - geonamesplus_<COUNTRY_CODE>.csv (main geonamesplus file with added bestName column)
-#
 
 # --- Configuration Section ---
 country_files="${1:-DE}"
@@ -20,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
 DATA_DIR="$ROOT_DIR/data"
 
-# --- Step 0: Combine All Alternate Names Chunks ---
+# Step 0: Combine All Alternate Names Chunks
 echo " Combining all alternateNamesV2_${country_files}_*.csv chunks..."
 combined_altfile="$DATA_DIR/alternateNamesV2_${country_files}.csv"
 first_chunk=$(ls "$DATA_DIR"/alternateNamesV2_"${country_files}"_*.csv 2>/dev/null | head -1)
@@ -35,7 +26,7 @@ head -1 "$first_chunk" > "$combined_altfile"
 tail -n +2 -q "$DATA_DIR"/alternateNamesV2_"${country_files}"_*.csv >> "$combined_altfile"
 
 
-# --- Step 1: Extract Best English Alternate Names ---
+# Step 1: Extract Best English Alternate Names
 echo "Extracting best English alternate names..."
 awk -F'\t' '
 NR==1 {
@@ -70,7 +61,7 @@ END {
 ' "$combined_altfile" > "$DATA_DIR/bestnames_${country_files}.txt"
 
 
-# --- Step 2: Join with Main Geonames Data and OVERWRITE geonamesplus_<COUNTRY_CODE>.csv ---
+# Step 2: Join with Main Geonames Data and OVERWRITE geonamesplus_<COUNTRY_CODE>.csv 
 echo "Joining best names with main geonamesplus data and overwriting file..."
 mainfile="$DATA_DIR/geonamesplus_${country_files}.csv"
 tmpfile="$DATA_DIR/geonamesplus_${country_files}.tmp"

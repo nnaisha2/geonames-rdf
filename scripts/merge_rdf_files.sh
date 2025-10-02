@@ -1,8 +1,8 @@
 #!/bin/bash
 
 set -e
-COUNTRY_CODE="${1:-DE}"
 
+COUNTRY_CODE="${1:-DE}"
 OUTPUT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../output" && pwd)"
 ONTOLOGY="$OUTPUT_DIR/ontology_v3.3_modified.rdf"       # Ontology RDF file in RDF/XML format
 DATA="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"         # Geonames data file in Turtle format

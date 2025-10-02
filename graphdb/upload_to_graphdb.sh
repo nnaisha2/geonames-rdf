@@ -1,25 +1,22 @@
 #!/bin/bash
-set -e # Exit immediately if any command fails
+
+set -e 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
-
 OUTPUT_DIR="$ROOT_DIR/output"
 CONFIG_DIR="$ROOT_DIR/config"
-
 REPOSITORY_ID="geonames"
 GRAPHDB_HOST="${GRAPHDB_HOST:-localhost}"
 ADDRESS="http://${GRAPHDB_HOST}:7200/repositories/$REPOSITORY_ID"
 REPOSITORY_CONFIG="$CONFIG_DIR/repository.ttl"
-
-COUNTRY_CODE="${1:-DE}"           # 1st argument: Country code, default to DE
-USERNAME_WITH_PASSWORD="${2:-}"  # 2nd argument: Optional "-u user:pass"
-
+COUNTRY_CODE="${1:-DE}"           
+USERNAME_WITH_PASSWORD="${2:-}"
 RDF_FILE="$OUTPUT_DIR/geonames_${COUNTRY_CODE}.ttl"
 ONTOLOGY_FILE="$OUTPUT_DIR/ontology_v3.3_modified.rdf"
-
 GRAPH_GEONAMES="https://sws.geonames.org"
 GRAPH_ONTOLOGY="http://www.geonames.org/ontology"
+
 
 # Step 1: Delete existing repository (if any)
 echo "[1/6] Removing '$REPOSITORY_ID' repository for country code: $COUNTRY_CODE."

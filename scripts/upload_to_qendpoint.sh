@@ -1,25 +1,19 @@
 #!/bin/bash
+
 set -e
 
-# Usage:
-#   ./upload_to_qendpoint.sh [COUNTRY_CODE]
-# or with custom files:
-#   ./upload_to_qendpoint.sh [DATA_RDF_FILE] [ONTOLOGY_RDF_FILE] [QENDPOINT_URL]
-
+# --- Configuration ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR/.."
-
 OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/output}"
 CONFIG_DIR="${CONFIG_DIR:-$ROOT_DIR/config}"
 COUNTRY_CODE="${1:-DE}"
-
 DATA_RDF_FILE="${2:-$OUTPUT_DIR/geonames_${COUNTRY_CODE}_merged.ttl}"
-
 QENDPOINT_HOST="${QENDPOINT_HOST:-localhost}"
 QENDPOINT_PORT="${QENDPOINT_PORT:-1234}"
 QENDPOINT_URL="${4:-http://$QENDPOINT_HOST:$QENDPOINT_PORT}"
 
-# Upload function
+# Helper functions
 upload_file() {
   local file="$1"
   if [ ! -f "$file" ]; then
@@ -52,14 +46,15 @@ wait_for_merge_completion() {
   done
 }
 
-# Start process
-
+# Step 1: Upload RDF file
 echo "[Step 1/3] Upload Data RDF"
 upload_file "$DATA_RDF_FILE"
 
+# Step 2: Trigger MERGE
 echo "[Step 2/3] Trigger MERGE operation"
 trigger_merge
 
+# Step 3: Wait for MERGE completion
 echo "[Step 3/3] Poll MERGE status and wait for completion"
 wait_for_merge_completion
 

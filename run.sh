@@ -4,7 +4,8 @@ set -e
 NO_PROXY=false
 POSITIONAL_ARGS=()
 
-# Parse arguments and flags
+# Parse input arguments and flags
+# Collect positional args, detect --no-proxy flag
 for arg in "$@"; do
   case $arg in
     --no-proxy)
@@ -17,30 +18,37 @@ for arg in "$@"; do
   esac
 done
 
-# Set positional arguments
+# Reset positional parameters to filtered arguments
 set -- "${POSITIONAL_ARGS[@]}"
+
 COUNTRY_CODE="${1:-DE}"
 UPLOAD_TARGET="${2:-qendpoint}"
 ENDPOINT_URL="${3:-https://geonames.need.energy/sparql}"
 
+# Persist key environment variables in .env for Docker Compose services
 echo "COUNTRY_CODE=$COUNTRY_CODE" > .env
 echo "UPLOAD_TARGET=$UPLOAD_TARGET" >> .env
 echo "ENDPOINT_URL=$ENDPOINT_URL" >> .env
-echo "[1/3] Downloading..."
+
+# Step 1: Download GeoNames data
+echo "[1/4] Downloading..."
 docker compose -f docker-compose.yml up --build geonames-download
 
-echo "[2/3] Transforming..."
+# Step 2: Transform data into intermediate RDF formats
+echo "[2/4] Transforming..."
 docker compose -f docker-compose.yml up --build geonames-transform
 
-echo "[2.5/3] Merging RDF files..."
+# Step 3: Merge RDF files into single dataset
+echo "[3/4] Merging RDF files..."
 docker compose -f docker-compose.yml up --build geonames-merge
 
-echo "[3/3] Uploading to $UPLOAD_TARGET..."
+# Step 4: Upload RDF data to target triple store and launch services
+echo "[4/4] Uploading to $UPLOAD_TARGET..."
 
-# Start geonames-web (always)
+# Always start geonames-web UI
 docker compose -f docker-compose.yml up --build -d geonames-web
 
-# Optionally start nginx
+# Optionally start nginx proxy (skip if --no-proxy flag set)
 if [ "$NO_PROXY" = false ]; then
   echo "Starting nginx proxy..."
   docker compose --profile proxy -f docker-compose.yml up --build -d nginx
@@ -48,7 +56,6 @@ else
   echo "Skipping nginx proxy (--no-proxy flag used)"
 fi
 
-# Upload to selected target
 if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
   docker compose -f docker-compose.yml up --build geonames-upload
   docker compose -f docker-compose.yml up --build -d qendpoint

@@ -32,7 +32,6 @@ CONSTRUCT {
     gn:childrenFeatures ?child ;
     gn:parentFeature ?finalParentFeature ;
     gn:name ?bestName .
-    #time:timezone ?timezone .
 
   # --- Document triples ---
   ?definitionDoc a foaf:Document ;
@@ -46,15 +45,15 @@ WHERE {
   SERVICE <x-sparql-anything:> {
     fx:properties
       fx:location ?_SOURCE ;
-      fx:ondisk "/tmp/sparql-anything-geonames" ;
-      fx:ondisk.reuse false ;
-      fx:null-string "" ;
+      fx:ondisk "/tmp/sparql-anything-geonames" ; # Ondisk storage is slower but required to prevent OOM.
+      fx:ondisk.reuse false ; # Prevents OOM.
+      fx:null-string "" ; 
       fx:csv.delimiter "\t" ;
       fx:csv.headers true ;
       fx:slice "5000"
     .
 
-    # Minimal required fields
+
     ?s xyz:geonameid ?id ;
        xyz:asciiname ?asciiname ;
        xyz:country%20code ?countryCode ;
@@ -66,17 +65,16 @@ WHERE {
        xyz:population ?populationRaw .
     BIND(xsd:integer(?populationRaw) AS ?population)
 
-    # Optional fields
+    
     OPTIONAL { ?s xyz:feature%20code ?featureCodeString . }
     #OPTIONAL { ?s xyz:elevation ?elevation . }
-    #OPTIONAL { ?s xyz:timezone ?timezone . }
     OPTIONAL { ?s xyz:modification%20date ?modDateRaw . }
     OPTIONAL { ?s xyz:adm1 ?adm1FullCode . }
     OPTIONAL { ?s xyz:adm2 ?adm2FullCode . }
     OPTIONAL { ?s xyz:admin3%20code ?admin3LocalCode . }
     OPTIONAL { ?s xyz:admin4%20code ?admin4LocalCode . }
 
-    # BINDs for URIs and transformed values
+    
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) AS ?uri)
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/about.rdf")) AS ?definitionDoc)
     BIND(URI(CONCAT("http://www.geonames.org/ontology#", ?featureClassString)) AS ?featureClass)
@@ -171,7 +169,7 @@ WHERE {
     BIND(URI(CONCAT("https://sws.geonames.org/", ?parentId, "/")) AS ?countryParentFeature)
   }
 
-  # --- # Use country as parent for ADM1 features ---
+  # --- Use country as parent for ADM1 features ---
   BIND(
     IF(?featureClassString = "A" && ?featureCodeString = "ADM1",
        ?parentCountry, 
