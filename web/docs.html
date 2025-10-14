@@ -234,23 +234,33 @@
 
         <section id="Custom_property_additions" class="content-section">
           <h2>Custom Property Additions</h2>
+          <ul>
+          <li>
           <h3>Wikidata Property Integration</h3>
-          <p>
+          
             The GeoNames ontology does not provide certain nationally‑specific
             identifiers that are crucial for linking with government datasets.
             In the German context, one important identifier is the Amtlicher
             Gemeindeschlüssel (official municipality key), which uniquely
             identifies every German municipality.
-          </p>
+          
           <h4>Integration Approach</h4>
-          <p>
+          
             To address this gap, external identifiers from Wikidata were
             incorporated into the RDF transformation:<br />
             The property wdt:P439 (Amtlicher Gemeindeschlüssel) is used to
             annotate German municipalities.<br />
             These values are linked directly to their corresponding GeoNames
             feature URIs.
-          </p>
+          </li>
+          <li>
+            <h3>Altitude data</h3>
+             The RDF files provided for GeoNames entities do not contain altitude values, although they are present in the CSV dumps under the "dem" column. This column stands for "digital elevation model" and represents the average elevation in meters based on digital terrain data.
+            
+             <h4>Integration Approach</h4>
+             To integrate this value into the dataset, the DEM value is encoded using <code>wgs84_pos.rdf</code>: WGS84 Geo Positioning, an RDF vocabulary for representing latitude, longitude, and altitude information in the WGS84 geodetic reference datum.
+          </li>
+          </ul>
         </section>
         <section id="comparisons" class="content-section">
           <h2>Feature Comparisons</h2>
