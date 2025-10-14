@@ -27,8 +27,7 @@ CONSTRUCT {
     gn:parentADM2 ?parentAdm2 ;
     gn:parentADM3 ?parentAdm3 ;
     gn:parentADM4 ?parentAdm4 ;
-    #wgs84_pos:elevation ?elevation ;
-    wgs84_pos:dem ?demDecimal;
+    wgs84_pos:alt ?altDecimal ;
     gn:childrenFeatures ?child ;
     gn:parentFeature ?finalParentFeature ;
     gn:name ?bestName .
@@ -60,14 +59,14 @@ WHERE {
        xyz:feature%20class ?featureClassString ;
        xyz:latitude ?latitude ;
        xyz:longitude ?longitude ;
-       xyz:dem ?dem ;
        xyz:bestName ?bestName ;
        xyz:population ?populationRaw .
     BIND(xsd:integer(?populationRaw) AS ?population)
 
     
     OPTIONAL { ?s xyz:feature%20code ?featureCodeString . }
-    #OPTIONAL { ?s xyz:elevation ?elevation . }
+    OPTIONAL { ?s xyz:elevation ?elevationRaw . }
+    OPTIONAL { ?s xyz:dem ?demRaw . }
     OPTIONAL { ?s xyz:modification%20date ?modDateRaw . }
     OPTIONAL { ?s xyz:adm1 ?adm1FullCode . }
     OPTIONAL { ?s xyz:adm2 ?adm2FullCode . }
@@ -83,11 +82,16 @@ WHERE {
          "" ) AS ?featureCode )
     BIND(xsd:decimal(?latitude) AS ?latitudeDecimal)
     BIND(xsd:decimal(?longitude) AS ?longitudeDecimal)
-    BIND(xsd:decimal(?dem ) AS ?demDecimal)
     BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/contains.rdf")) AS ?child)
     BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", 
          REPLACE(REPLACE(LCASE(?asciiname), ",", ""), " ", "-"), ".html")) AS ?locationMapUri)
     BIND(xsd:date(?modDateRaw) AS ?modDate)
+    
+    # --- Altitude logic ---
+    BIND(xsd:decimal(?elevationRaw) AS ?altelevation)
+    BIND(xsd:decimal(?demRaw) AS ?altdem)
+    FILTER(!(BOUND(?altelevation) && STR(?altelevation) = ""))
+    BIND(COALESCE(?altelevation, ?altdem) AS ?altDecimal)
 
     # --- Proximity predicate and endpoint logic ---
     BIND(
