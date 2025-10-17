@@ -245,29 +245,53 @@
               identifies every German municipality.
 
               <h4>Integration Approach</h4>
+              <p>
+                Wikidata provides the property <strong>wdt:P439</strong> for the
+                <em>Amtlicher Gemeindeschlüssel</em> (official municipality
+                key). GeoNames includes the actual key values in its CSV files.
+              </p>
 
-              To address this gap, external identifiers from Wikidata were
-              incorporated into the RDF transformation:<br />
-              The property wdt:P439 (Amtlicher Gemeindeschlüssel) is used to
-              annotate German municipalities.<br />
-              These values are linked directly to their corresponding GeoNames
-              feature URIs.
+              <p>
+                During integration, the system reuses
+                <strong>wdt:P439</strong> as the property to link GeoNames
+                features with their official keys. <br />
+                It:
+              </p>
+
+              <ul>
+                <li>reads key values from GeoNames CSV data.</li>
+                <li>
+                  assigns them to German municipalities using Wikidata’s
+                  <strong>wdt:P439</strong>.
+                </li>
+                <li>links each feature URI to its corresponding key.</li>
+              </ul>
             </li>
             <li>
               <h3>Altitude data</h3>
-              The RDF files provided for GeoNames entities do not directly
-              contain altitude values, although altitude information is present
-              in the CSV dumps under both the "dem" and "elevation" columns. The
-              DEM column stands for Digital Elevation Model and represents the
-              average elevation in meters based on digital terrain data,
-              essentially a modeled surface elevation derived from geographic
-              information systems.
+
+              <p>
+                Altitude information in GeoNames is available in the CSV dumps
+                under the elevation and dem columns. The
+                <em>elevation</em> value represents the feature’s altitude in
+                meters when available, while the <em>dem</em> (Digital Elevation
+                Model) provides a model‑based average elevation.
+              </p>
               <h4>Integration Approach</h4>
-              To integrate altitude values into the dataset, the DEM and
-              elevation values are encoded using the wgs84_pos vocabulary
-              (wgs84_pos:dem and wgs84_pos:elevation), an RDF vocabulary
-              designed to represent latitude, longitude, and altitude
-              information in the WGS84 geodetic reference system.
+              <p>
+                During integration, both columns are read and converted to
+                decimal values. The elevation value is the prefered altitude
+                value, and if it is missing, the dem value is used as a fallback
+                altitude value. The resulting altitude is then expressed using
+                the
+                <strong>wgs84_pos:alt</strong> property of the WGS84 vocabulary.
+              </p>
+
+              <p>
+                This ensures each geographic feature includes a consistent
+                altitude value derived directly from the most reliable available
+                source.
+              </p>
             </li>
           </ul>
         </section>
@@ -276,10 +300,12 @@
           <p>
             The following tables show side-by-side comparisons of selected
             example features across different GeoNames sources:
-            <code>about.rdf</code>, the corresponding HTML pages, the old RDF
-            dump, and the generated Turtle file (<code>geonames_DE.ttl</code>).
-            These comparisons make it easier to see which values remain
-            consistent across sources and where differences occur.
+            <code>about.rdf</code> files (downloaded from the GeoNames website
+            on October 1, 2025), the corresponding HTML pages, the old RDF dump
+            (dated February 14, 2020), and the generated Turtle file
+            geonames_DE_2025-10-01.ttl. These comparisons make it easier to
+            identify consistent values across sources and highlight where
+            differences occur.
           </p>
           <p>The tables make use of standard RDF prefixes, including:</p>
           <ul>
@@ -307,1449 +333,1515 @@
 
           <!-- Feature 1 -->
 
-          <summary><strong>Feature 1: Germany</strong></summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived from gn:wikipediaArticle</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">
-                    Yes<br />
-                    (Fewer than about.rdf and geonames_DE.ttl)
-                  </td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">
-                    Yes<br />
-                    (Fewer than about.rdf and geonames_DE.ttl)
-                  </td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:shortName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>
-                    alternateNamesV2.txt / alternateName where isShortName=1
-                  </td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (81,802,257)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:parentFeature</td>
-                  <td style="background-color: #ffeb9c">Yes (6 URIs)</td>
-                  <td style="background-color: #ffeb9c">Yes (5 URIs)</td>
-                  <td style="background-color: #ffeb9c">Yes (3 URIs)</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>admin codes</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:neighbouringFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:locationMap</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt / alternateName where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:license</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:attributionURL</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:attributionName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary><strong>Feature 1: Germany</strong></summary>
+            <a href="https://sws.geonames.org/2921044/">
+              Feature IRI: https://sws.geonames.org/2921044/</a
+            >
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived from gn:wikipediaArticle</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">
+                      Yes<br />
+                      (Fewer than about.rdf and geonames_DE.ttl)
+                    </td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">
+                      Yes<br />
+                      (Fewer than about.rdf and geonames_DE.ttl)
+                    </td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:shortName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName where isShortName=1
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (81,802,257)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentFeature</td>
+                    <td style="background-color: #ffeb9c">Yes (6 URIs)</td>
+                    <td style="background-color: #ffeb9c">Yes (5 URIs)</td>
+                    <td style="background-color: #ffeb9c">Yes (3 URIs)</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>admin codes</td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:neighbouringFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:locationMap</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>
+                      alternateNames.txt / alternateName where type='wiki'
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:attributionURL</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:attributionName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
           <!-- Feature 2 -->
-          <summary><strong>Feature 2: Bavaria</strong></summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (fewer)</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:shortName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt where isShortName=1</td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (12,510,331)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:parentFeature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>admin codes</td>
-                </tr>
-                <tr>
-                  <td>gn:parentCountry</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:license / attribution</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary><strong>Feature 2: Bavaria</strong></summary>
+            <a href="https://sws.geonames.org/2951839/"
+              >Feature IRI: https://sws.geonames.org/2951839/</a
+            >
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (fewer)</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:shortName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>alternateNamesV2.txt where isShortName=1</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (12,510,331)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentFeature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>admin codes</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentCountry</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt where type='wiki'</td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license / attribution</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
           <!-- Feature 3 -->
 
-          <summary><strong>Feature 3: Upper Bavaria</strong></summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (fewer)</td>
-                  <td style="background-color: #ffeb9c">Yes (fewer)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:shortName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt where isShortName=1</td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:parentCountry</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (4,232,962)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:parentFeature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>admin codes</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM1</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:license / attribution</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Only in RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary><strong>Feature 3: Upper Bavaria</strong></summary>
+            <a href="https://sws.geonames.org/2861322/"
+              >Feature IRI: https: https://sws.geonames.org/2861322/</a
+            >
+
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (fewer)</td>
+                    <td style="background-color: #ffeb9c">Yes (fewer)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:shortName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>alternateNamesV2.txt where isShortName=1</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentCountry</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (4,232,962)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentFeature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>admin codes</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM1</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt where type='wiki'</td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license / attribution</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Only in RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
           <!-- Feature 4 -->
 
-          <summary><strong>Feature 4: Munich (rural district)</strong></summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (fewer)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:shortName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>
-                    alternateNamesV2.txt / alternateName where isShortName=1
-                  </td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (343,405)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:parentFeature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>admin codes</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM1</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">
-                    Yes (shown in hierarchy)
-                  </td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM2</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">
-                    Yes (shown in hierarchy)
-                  </td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentCountry</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt / alternateName where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:license / attribution</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata only</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata only</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary>
+              <strong>Feature 4: Munich (rural district)</strong>
+            </summary>
+            <a href="https://sws.geonames.org/3220838/"
+              >Feature IRI: https: https://sws.geonames.org/3220838/</a
+            >
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (fewer)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:shortName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName where isShortName=1
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (343,405)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentFeature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>admin codes</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM1</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">
+                      Yes (shown in hierarchy)
+                    </td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM2</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">
+                      Yes (shown in hierarchy)
+                    </td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentCountry</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>
+                      alternateNames.txt / alternateName where type='wiki'
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license / attribution</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata only</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata only</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
           <!-- Feature 5 -->
 
-          <summary><strong>Feature 5: Munich (urban district)</strong></summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #ffeb9c">Yes ("München"@de)</td>
-                  <td style="background-color: #ffeb9c">Yes ("Munich")</td>
-                  <td style="background-color: #ffeb9c">Yes ("Munich")</td>
-                  <td style="background-color: #ffeb9c">
-                    Yes ("München, Munich, Munich, ville-arrondissement")
-                  </td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:shortName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>
-                    alternateNamesV2.txt / alternateName where isShortName=1
-                  </td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes (1,464,301)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:parentFeature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>admin codes</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM1</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM2</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentCountry</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt / alternateName where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes (metadata)</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata only</td>
-                </tr>
-                <tr>
-                  <td>cc:license / attribution</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata only</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary>
+              <strong>Feature 5: Munich (urban district)</strong>
+            </summary>
+            <a href="https://sws.geonames.org/3220837/"
+              >Feature IRI: https: https://sws.geonames.org/3220837/</a
+            >
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #ffeb9c">
+                      Yes ("München"@de)
+                    </td>
+                    <td style="background-color: #ffeb9c">Yes ("Munich")</td>
+                    <td style="background-color: #ffeb9c">Yes ("Munich")</td>
+                    <td style="background-color: #ffeb9c">
+                      Yes ("München, Munich, Munich, ville-arrondissement")
+                    </td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:shortName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName where isShortName=1
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes (1,464,301)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentFeature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>admin codes</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM1</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM2</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentCountry</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>
+                      alternateNames.txt / alternateName where type='wiki'
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes (metadata)</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata only</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license / attribution</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata only</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
           <!-- Feature 6 -->
-          <summary><strong>Feature 6: Munich</strong></summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:postalCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM1</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM2</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM3</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes (hierarchy)</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM4</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">
-                    Yes (lowest-level hierarchy)
-                  </td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentCountry</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt / alternateName where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata only</td>
-                </tr>
-                <tr>
-                  <td>cc:license / attribution</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary><strong>Feature 6: Munich</strong></summary>
+            <a href="https://sws.geonames.org/2867714/"
+              >Feature IRI: https: https://sws.geonames.org/2867714/</a
+            >
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:postalCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNames.txt</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM1</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM2</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM3</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes (hierarchy)</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM4</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">
+                      Yes (lowest-level hierarchy)
+                    </td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentCountry</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>
+                      alternateNames.txt / alternateName where type='wiki'
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata only</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license / attribution</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
 
           <!-- Feature 7 -->
-          <summary>
-            <strong>Feature 7: Munich (ADM4 Landeshauptstadt München)</strong>
-          </summary>
-          <div class="table-container">
-            <table border="1" cellspacing="0" cellpadding="6">
-              <thead>
-                <tr style="background-color: #d9d9d9; font-weight: bold">
-                  <td>Property (prefixed IRI)</td>
-                  <td>geonames_DE.ttl</td>
-                  <td>about.rdf</td>
-                  <td>Old RDF dump</td>
-                  <td>HTML page</td>
-                  <td>From GeoNames CSV: file/column</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>gn:Feature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>-</td>
-                </tr>
-                <tr>
-                  <td>rdfs:isDefinedBy</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>rdfs:seeAlso</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:name</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / name</td>
-                </tr>
-                <tr>
-                  <td>gn:officialName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>alternateNamesV2.txt / alternateName (pref lang tags)</td>
-                </tr>
-                <tr>
-                  <td>gn:alternateName</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNamesV2.txt / alternateName</td>
-                </tr>
-                <tr>
-                  <td>gn:featureClass</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature class</td>
-                </tr>
-                <tr>
-                  <td>gn:featureCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / feature code</td>
-                </tr>
-                <tr>
-                  <td>gn:countryCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / country code</td>
-                </tr>
-                <tr>
-                  <td>gn:population</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / population</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:lat</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / latitude</td>
-                </tr>
-                <tr>
-                  <td>wgs84_pos:long</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>DE.txt / longitude</td>
-                </tr>
-                <tr>
-                  <td>gn:postalCode</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM1</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM2</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentADM3</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentFeature</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:parentCountry</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>gn:wikipediaArticle</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td>alternateNames.txt / alternateName where type='wiki'</td>
-                </tr>
-                <tr>
-                  <td>gn:childrenFeatures</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>Derived</td>
-                </tr>
-                <tr>
-                  <td>foaf:Document</td>
-                  <td style="background-color: #ffeb9c">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>cc:license / attribution</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:created</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>RDF metadata</td>
-                </tr>
-                <tr>
-                  <td>dcterms:modified</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #c6efce">Yes</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td style="background-color: #f4c7c3">No</td>
-                  <td>DE.txt / modification date</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <details>
+            <summary>
+              <strong>Feature 7: Munich (ADM4 Landeshauptstadt München)</strong>
+            </summary>
+            <a href="https://sws.geonames.org/6559171/"
+              >Feature IRI: https: https://sws.geonames.org/6559171/</a
+            >
+            <div class="table-container">
+              <table border="1" cellspacing="0" cellpadding="6">
+                <thead>
+                  <tr style="background-color: #d9d9d9; font-weight: bold">
+                    <td>Property (prefixed IRI)</td>
+                    <td>geonames_DE.ttl</td>
+                    <td>about.rdf</td>
+                    <td>Old RDF dump</td>
+                    <td>HTML page</td>
+                    <td>From GeoNames CSV: file/column</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>gn:Feature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:isDefinedBy</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>rdfs:seeAlso</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:name</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / name</td>
+                  </tr>
+                  <tr>
+                    <td>gn:officialName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>
+                      alternateNamesV2.txt / alternateName (pref lang tags)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:alternateName</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNamesV2.txt / alternateName</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureClass</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature class</td>
+                  </tr>
+                  <tr>
+                    <td>gn:featureCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / feature code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:countryCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / country code</td>
+                  </tr>
+                  <tr>
+                    <td>gn:population</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / population</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:lat</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / latitude</td>
+                  </tr>
+                  <tr>
+                    <td>wgs84_pos:long</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>DE.txt / longitude</td>
+                  </tr>
+                  <tr>
+                    <td>gn:postalCode</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>alternateNames.txt</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM1</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM2</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentADM3</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentFeature</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:parentCountry</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>gn:wikipediaArticle</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td>
+                      alternateNames.txt / alternateName where type='wiki'
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>gn:childrenFeatures</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>Derived</td>
+                  </tr>
+                  <tr>
+                    <td>foaf:Document</td>
+                    <td style="background-color: #ffeb9c">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>cc:license / attribution</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:created</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>RDF metadata</td>
+                  </tr>
+                  <tr>
+                    <td>dcterms:modified</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #c6efce">Yes</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td style="background-color: #f4c7c3">No</td>
+                    <td>DE.txt / modification date</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
         </section>
         <section id="YASR_plugins" class="content-section">
           <h2>Using YASR Plugins</h2>
@@ -1766,8 +1858,8 @@
           </p>
           <ul>
             <li>
-              <b>Using SPARQL:</b> Add a variable <code>?legendLabel</code> in
-              your query with your desired legend text.
+              <b>Using SPARQL:</b> Add a variable ?legendLabel in your query
+              with your desired legend text.
               <pre><code>
 PREFIX gn: &lt;http://www.geonames.org/ontology#&gt;
 
@@ -1786,17 +1878,108 @@ LIMIT 10
             for correct chart rendering.
           </p>
 
+          <b>Recognized variable names:</b>
+          <ul>
+            <li>
+              Label variables: ?label, ?classLabel, ?category, ?bucket, ?name
+            </li>
+            <li>Numeric value variables: ?value, ?count, ?total, ?num</li>
+            <li>Optional legend label: ?legendLabel</li>
+          </ul>
+
           <h3>2. Interactive Map Pins and Labels</h3>
           <p>
-            The Leaflet Map plugin supports interactive popups and clickable
-            pins when URIs are provided in your SPARQL results.
+            The Leaflet Map plugin visualizes SPARQL query results as
+            interactive map pins, placing markers using latitude and longitude
+            variables from your query.
           </p>
-
-          <h3>3. Interactive Edge Label Toggle</h3>
           <p>
-            The VisNetworkPlugin includes a checkbox above the graph to toggle
-            predicate labels on or off interactively.
+            Each pin displays a popup label from variables such as ?label or
+            ?name to identify the location. The clickable hyperlink on the pin
+            is derived from the URI of the main entity variable (commonly
+            ?feature) in your SPARQL result, which represents the primary
+            resource shown on the map.
           </p>
+          <p>
+            To enable effective map visualization and interactivity, ensure your
+            query:
+          </p>
+          <ul>
+            <li>
+              Includes latitude and longitude variables for positioning pins.
+            </li>
+            <li>Returns a descriptive label variable for popup names.</li>
+            <li>
+              Contains a unique URI variable (e.g., ?feature) identifying the
+              main geographic entity, which will be the clickable link for the
+              pins.
+            </li>
+          </ul>
+
+          <b>Recognized variable names:</b>
+          <ul>
+            <li>Latitude variables: ?lat, ?latitude, ?latDecimal, ?latDeg</li>
+            <li>
+              Longitude variables: ?long, ?lon, ?longitude, ?longDecimal,
+              ?longDeg
+            </li>
+            <li>URI variables: ?feature, ?uri, ?url</li>
+            <li>Label variables: ?label, ?name, ?s</li>
+          </ul>
+          <h3>3. Interactive Graph Visualization</h3>
+          <p>
+            The graph visualization plugin turns SPARQL query results into an
+            interactive network graph, where nodes represent entities and edges
+            represent relationships or properties. This visualization helps
+            users explore complex linked data structures visually.
+          </p>
+          <p>To generate effective graphs, your SPARQL query should:</p>
+          <ul>
+            <li>
+              Return triples with variables for subject (?s or ?subject),
+              predicate (?p or ?predicate), and object (?o or ?object).
+            </li>
+            <li>
+              Include human-readable labels for nodes (e.g., ?label) to improve
+              clarity.
+            </li>
+            <li>
+              Optional: Add variables for predicate labels (?pLabel) to display
+              relational context, and variables for node labels for easier
+              interpretation.
+            </li>
+
+            <li>
+              This query retrieves triples representing an administrative
+              hierarchy by linking features (?s) to their parent features (?o),
+              while fetching human-readable names as labels for both subjects
+              and objects and including predicates with their labels for edge
+              descriptions.
+              <pre><code>
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt; 
+PREFIX gn: &lt;http://www.geonames.org/ontology#&gt; 
+        
+SELECT ?s ?sLabel ?p ?pLabel ?o ?oLabel 
+WHERE { 
+    ?s gn:parentFeature ?o . 
+    ?s gn:name ?sLabel . 
+    ?o gn:name ?oLabel . 
+    ?s ?p ?o . 
+    ?p rdfs:label ?pLabel .
+} 
+LIMIT 10
+        </code></pre>
+            </li>
+          </ul>
+          <b>Recognized variable names:</b>
+          <ul>
+            <li>Subject variables: ?s, ?subject</li>
+            <li>Predicate variables: ?p, ?predicate</li>
+            <li>Object variables: ?o, ?object</li>
+            <li>Subject labels: ?sLabel, ?subjectLabel</li>
+            <li>Object labels: ?oLabel, ?objectLabel</li>
+            <li>Predicate labels (for edge text): ?pLabel, ?predicateLabel</li>
+          </ul>
         </section>
         <section id="references" class="content-section">
           <h2>References</h2>

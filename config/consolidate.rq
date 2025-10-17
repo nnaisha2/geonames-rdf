@@ -45,7 +45,7 @@ WHERE {
            isBlank(?o) ||
            (
              (datatype(?o) = xsd:decimal || datatype(?o) = xsd:double) 
-             (xsd:decimal(?o) = -9999)
+             && (xsd:decimal(?o) = -9999)
            )
          )
         )
