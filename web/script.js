@@ -211,7 +211,7 @@ class VisNetworkPlugin {
     const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
 
     const options = {
-      physics: { stabilization: true, barnesHut: { gravitationalConstant: -4000 } },
+      physics: { stabilization:false, barnesHut: { gravitationalConstant: -4000 } },
       edges: { arrows: 'to', smooth: { type: 'dynamic' } },
       interaction: { hover: true, tooltipDelay: 120 }
     };

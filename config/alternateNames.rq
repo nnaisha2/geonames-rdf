@@ -64,17 +64,23 @@ WHERE {
       ) AS ?dbpediaResource
     )
 
-    #alternate names
-    BIND(
-     IF(BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
-       IF(BOUND(?pref) && ?pref = "1",
-       ?undef,  # not alternateName, will be officialName
-      STRLANG(STR(?nameValue), ?lang)
-      ),
-      IF((!BOUND(?lang) || STRLEN(STR(?lang)) = 0) && (!BOUND(?pref) || ?pref != "1"),
-      STR(?nameValue),
-    ?undef
+BIND(
+  IF(
+    BOUND(?short) && ?short = "1",
+    ?undef,  # skip alternateName if shortName=1
+    IF(
+      BOUND(?pref) && ?pref = "1",
+      ?undef,  # skip alternateName if official name
+      IF(
+        BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+        STRLANG(STR(?nameValue), ?lang),
+        IF(
+          (!BOUND(?lang) || STRLEN(STR(?lang)) = 0),
+          STR(?nameValue),
+          ?undef
+        )
       )
+    )
   ) AS ?alternateName
 )
 
@@ -96,10 +102,15 @@ WHERE {
 
     # Short Names (isShortName=1)
     BIND(
-      IF(BOUND(?short) && ?short = "1",
-        IF(BOUND(?alternateName), ?alternateName, STR(?nameValue)),
-        ?undef
-      ) AS ?shortName
-    )
+  IF(
+    BOUND(?short) && ?short = "1",
+    IF(
+      BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+      STRLANG(STR(?nameValue), ?lang),
+      STR(?nameValue)
+    ),
+    ?undef
+  ) AS ?shortName
+   )
   }
 }
