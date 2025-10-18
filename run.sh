@@ -60,7 +60,7 @@ if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
   docker compose -f docker-compose.yml up --build geonames-upload
   docker compose -f docker-compose.yml up --build -d qendpoint
 elif [ "$UPLOAD_TARGET" == "graphdb" ]; then
-  docker compose -f docker-compose.upload.graphdb.yml up --build
+  docker compose -f graphdb/docker-compose.upload.graphdb.yml up --build
 else
   echo "Unknown upload target: $UPLOAD_TARGET"
   exit 1
