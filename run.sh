@@ -39,8 +39,12 @@ echo "[2/4] Transforming..."
 docker compose -f docker-compose.yml up --build geonames-transform
 
 # Step 3: Merge RDF files into single dataset
-echo "[3/4] Merging RDF files..."
-docker compose -f docker-compose.yml up --build geonames-merge
+if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
+  echo "[3/4] Merging RDF files ..."
+  docker compose -f docker-compose.yml up --build geonames-merge
+else
+  echo "[3/4] Skipping RDF merge ..."
+fi
 
 # Step 4: Upload RDF data to target triple store and launch services
 echo "[4/4] Uploading to $UPLOAD_TARGET..."

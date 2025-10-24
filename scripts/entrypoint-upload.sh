@@ -16,16 +16,16 @@ if [ "$UPLOAD_QENDPOINT" = "true" ]; then
     echo "Waiting for qEndpoint to be ready..."
     sleep 5
   done
-  echo "[3b/3] Uploading to qEndpoint ..."
+  echo "[3a/3] Uploading to qEndpoint ..."
   source "$SCRIPT_DIR/upload_to_qendpoint.sh" "$COUNTRY_CODE"
+
 elif [ "$UPLOAD_GRAPHDB" = "true" ]; then
-  echo "[3a/3] Uploading to GraphDB ..."
   echo "[UPLOAD] Waiting for GraphDB at $GRAPHDB_HOST:7200 to be ready..."
   until curl -s "http://graphdb:7200" > /dev/null; do
     echo "[UPLOAD] GraphDB is not ready yet. Retrying in 5 seconds..."
     sleep 5
   done
-  echo "GraphDB is ready, starting upload."
+  echo "[3b/3] Uploading to GraphDB ..."
   source "$SCRIPT_DIR/../graphdb/upload_to_graphdb.sh" "$COUNTRY_CODE"
 else
   echo "No upload target specified. Skipping upload."

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# This script extracts the best English alternate names from GeoNames alternateNamesV2 files,
+# This script extracts the best available English alternate names from GeoNames alternateNamesV2 files,
 # and joins them with the main geonamesplus dataset, adding a 'bestName' column.
 
 
@@ -21,12 +21,12 @@ if [ -z "$first_chunk" ]; then
     exit 1
 fi
 
-# Combine: keep header from first chunk, then all data rows from all chunks
+# Keep header from first chunk, then all data rows from all chunks
 head -1 "$first_chunk" > "$combined_altfile"
 tail -n +2 -q "$DATA_DIR"/alternateNamesV2_"${country_files}"_*.csv >> "$combined_altfile"
 
 
-# Step 1: Extract Best English Alternate Names
+# Step 1: Extract the available english alternate Names
 echo "Extracting best English alternate names..."
 awk -F'\t' '
 NR==1 {
@@ -61,7 +61,7 @@ END {
 ' "$combined_altfile" > "$DATA_DIR/bestnames_${country_files}.txt"
 
 
-# Step 2: Join with Main Geonames Data and OVERWRITE geonamesplus_<COUNTRY_CODE>.csv 
+# Step 2: Join with Main Geonames Data and overwrite geonamesplus_<COUNTRY_CODE>.csv 
 echo "Joining best names with main geonamesplus data and overwriting file..."
 mainfile="$DATA_DIR/geonamesplus_${country_files}.csv"
 tmpfile="$DATA_DIR/geonamesplus_${country_files}.tmp"

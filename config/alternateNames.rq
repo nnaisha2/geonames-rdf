@@ -41,13 +41,8 @@ WHERE {
 
 
     # DBpedia Resource (from Wikipedia)
-    # 
-    # - DBpedia expects percent-encoded URIs for non-ASCII characters.
-    # - GeoNames Wikipedia links are usually already encoded, but not always.
-    # - This logic:
     #    * If the Wikipedia article title contains '%', assume it's already encoded and use as-is.
     #    * Otherwise, encode it for URI safety.
-    # - This avoids double-encoding and ensures Unicode is encoded.
     
     BIND(
       IF(

@@ -28,7 +28,7 @@ curl -X PUT --header "Content-Type: application/x-turtle" \
   --data-binary @$REPOSITORY_CONFIG \
   "$ADDRESS" $USERNAME_WITH_PASSWORD
 
-# Step 3: Upload RDF file(s) to GraphDB
+# Step 3: Upload RDF file and GeoNames ontology (RDF/XML) to GraphDB
 echo "[3/6] Uploading $RDF_FILE to named graph '$GRAPH_GEONAMES'..."
 curl -X POST \
   --header "Content-Type: application/x-turtle" \
@@ -36,7 +36,6 @@ curl -X POST \
   "$ADDRESS/rdf-graphs/service?graph=$GRAPH_GEONAMES" \
   $USERNAME_WITH_PASSWORD
 
-# Upload the GeoNames ontology (RDF/XML) to the repository to provide schema/vocabulary definitions.
 echo "[3b/6] Uploading $ONTOLOGY_FILE to named graph '$GRAPH_ONTOLOGY'..."
 curl -X POST \
   --header "Content-Type: application/rdf+xml" \

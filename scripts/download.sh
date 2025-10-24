@@ -13,7 +13,7 @@ COUNTRY_CODE="${1:-DE}"  # Default to DE
 mkdir -p "$DATA_DIR" "$DOWNLOAD_DIR"
 
 
-# --- Utility: Download only if missing or newer ---
+# --- Download only if missing or newer ---
 conditional_download() {
     local url=$1
     local local_file=$2

@@ -14,14 +14,14 @@ WHERE {
     ?uri a gn:Feature ;
          ?p ?o .
 
-    # Filter out gn:parentCountry only for country entities
+    # --- Filter out gn:parentCountry only for country entities ---
     FILTER(!(?p = gn:parentCountry && EXISTS {
       ?uri a gn:Feature ;
            gn:featureClass gn:A ;
            gn:featureCode gn:A.PCLI .
     }))
 
-    # Filter out gn:nearbyFeatures triples for ADM1 features
+    # --- Filter out gn:nearbyFeatures triples for ADM1 features ---
     FILTER( !(
       ?p = gn:nearbyFeatures &&
       EXISTS {
@@ -30,13 +30,13 @@ WHERE {
       }
     ))
 
-    # Filter out gn:population triples where population is 0
+    # --- Filter out gn:population triples where population is 0 ---
     FILTER( !(
       ?p = gn:population &&
       ( ?o = 0 || ?o = "0"^^xsd:integer || ?o = "0" )
     ))
 
-    # Filter out altitude values where the value is -9999
+    # --- Filter out altitude values where the value is -9999 ---
     FILTER(
       !(
         (?p = wgs84_pos:alt &&
