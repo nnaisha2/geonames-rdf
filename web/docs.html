@@ -102,10 +102,9 @@
         <section id="intro" class="content-section">
           <h2>Introduction</h2>
           <p>
-            Welcome to the documentation for the SPARQL Interface project based
-            on GeoNames CSV dumps. This documentation outlines key observations,
-            known limitations, and conventions related to the GeoNames data
-            dumps and ontologies used.
+            This documentation outlines key observations, known limitations, and
+            conventions related to the GeoNames data dumps and ontologies used,
+            as well as the transformation to RDF and the SPARQL editor.
           </p>
         </section>
         <section id="Limitations" class="content-section">
@@ -121,19 +120,19 @@
           </p>
           <h4>Alignment Approach</h4>
           <p>
-            The modification date provided in the CSV (modification date
-            column)is mapped directly into dcterms:modified.<br />
+            The modification date provided in the CSV (modification date column)
+            is mapped directly to dcterms:modified.<br />
             Since dcterms:created is entirely absent from the dataset, no
             attempt is made to artificially populate it.
           </p>
 
-          <h3>2. Namespace Prefix gn Variations</h3>
+          <h3>2. Namespace Prefix "gn" Variations</h3>
           <h4>Original GeoNames Data Issue</h4>
           <p>
             The GeoNames ontology uses the namespace
             <a href="http://www.geonames.org/ontology#"
               >http://www.geonames.org/ontology#</a
-            >. However, in practice both the official files and third‑party uses
+            >. However, in practice both the official files and third-party ones
             sometimes mix http and https variants of this prefix. These
             inconsistencies lead to subtle but significant issues:
           </p>
@@ -145,26 +144,25 @@
           </ul>
           <h4>Alignment Approach</h4>
           <p>
-            To avoid mismatches,the officially correct prefix was
+            To avoid mismatches, the officially correct prefix was
             standardized:<br />
-            text<br />
             PREFIX gn: &lt;http://www.geonames.org/ontology#&gt;
           </p>
           <p>
             All pipeline outputs use the http:// form consistently.<br />
             A modified version of the GeoNames ontology
-            (ontology_v3.3_modified.rdf) was retrieved and integrated to ensure
-            consistent IRI usage across the dataset.
+            (ontology_v3.3_modified.rdf), which uses http:// like some of its
+            previous versions, is used to ensure consistent IRI usage across the
+            dataset.
           </p>
 
           <h3>3. Alternate Names and Language Tag Inconsistencies</h3>
           <h4>Original GeoNames Data Issue</h4>
           <p>
-            The GeoNames CSV dumps contain many alternate names without proper
-            language codes, making them difficult to use in multilingual
-            applications. These untagged names appear in the alternateNames.txt
-            file with empty language code fields. In addition, language tag
-            formats can vary across datasets, leading to inconsistencies in how
+            The GeoNames CSV dumps contain many alternate names without language
+            codes. These untagged names appear in the alternateNames.txt file
+            with empty language code fields. The language tag formats varies
+            across the available datasets, leading to inconsistencies in how
             alternate names are represented.
           </p>
           <h4>Filtering Approach</h4>
@@ -177,10 +175,7 @@
               Alternate names with explicit language codes (e.g., de, en, fr)
               are included.
             </li>
-            <li>
-              Alternate names with missing, empty, or invalid language codes are
-              excluded.
-            </li>
+            <li>Alternate names with no language codes are included.</li>
             <li>
               Entries marked as links or postal codes are treated separately and
               not mixed into alternate names.
@@ -197,12 +192,16 @@
             filtering for low or zero populations.
           </p>
           <h4>Alignment Approach</h4>
-          <p>
-            Zero‑valued population entries were excluded during
-            transformation.<br />
-            Only population values greater than zero are represented as
-            gn:population triples.
-          </p>
+          <ul>
+            <li>
+              Zero‑valued population entries were excluded during
+              transformation.
+            </li>
+            <li>
+              Only population values greater than zero are represented as
+              gn:population triples.
+            </li>
+          </ul>
 
           <h3>5. Postal Codes and Integration Challenges</h3>
           <h4>Original GeoNames Data Issue</h4>
@@ -593,7 +592,10 @@
                     <td style="background-color: #f4c7c3">No</td>
                     <td style="background-color: #f4c7c3">No</td>
                     <td style="background-color: #f4c7c3">No</td>
-                    <td>Polygon and bounding box downloads are available only in Premium export</td>
+                    <td>
+                      Polygon and bounding box downloads are available only in
+                      Premium export
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -1932,9 +1934,15 @@
                   </tr>
                   <tr>
                     <td>gn:childrenFeatures</td>
-                    <td style="background-color: #c6efce">https://sws.geonames.org/2861322/contains.rdf</td>
-                    <td style="background-color: #c6efce">https://sws.geonames.org/2861322/contains.rdf</td>
-                    <td style="background-color: #c6efce">https://sws.geonames.org/2861322/contains.rdf</td>
+                    <td style="background-color: #c6efce">
+                      https://sws.geonames.org/2861322/contains.rdf
+                    </td>
+                    <td style="background-color: #c6efce">
+                      https://sws.geonames.org/2861322/contains.rdf
+                    </td>
+                    <td style="background-color: #c6efce">
+                      https://sws.geonames.org/2861322/contains.rdf
+                    </td>
                     <td style="background-color: #f4c7c3">None</td>
                   </tr>
                   <tr>
@@ -2778,7 +2786,12 @@
 
           <!-- Feature 6 -->
           <details>
-            <summary><strong>Feature 6: Munich</strong></summary>
+            <summary>
+              <strong
+                >Feature 6: Munich (PPLA seat of a first-order administrative
+                division)</strong
+              >
+            </summary>
             <a href="https://sws.geonames.org/2867714/"
               >Feature IRI: https: https://sws.geonames.org/2867714/</a
             >
@@ -3784,17 +3797,6 @@ LIMIT 10
             <li>
               <a href="https://www.geonames.org/ontology/mappings_v3.01.rdf"
                 >GeoNames Mappings v3.01</a
-              >
-            </li>
-            <li>
-              <a href="https://sws.geonames.org/3220837/about.rdf"
-                >GeoNames About RDF Example</a
-              >
-            </li>
-            <li>Local file: <code>geonames_DE.ttl</code></li>
-            <li>
-              <a href="https://download.geonames.org/export/"
-                >GeoNames CSV dump data</a
               >
             </li>
           </ul>

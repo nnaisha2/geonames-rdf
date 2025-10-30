@@ -111,7 +111,7 @@ if [ -f "$ttl_file" ]; then
   # Update web index with date, endpoint, and version
   cp "$ROOT_DIR/web/index.template.html" "$ROOT_DIR/web/index.html"
   sed -i.bak "s/\[DATE\]/$CURRENT_DATE/g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
-  sed -i.bak "s|\[ENDPOINT_URL\]|$ENDPOINT_URL|g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
+  sed -i.bak "s|\[ENDPOINT_BASE_URL\]|$ENDPOINT_BASE_URL|g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
   sed -i.bak "s|\[VERSIONED_FILE\]|${versioned_ttl}.zip|g" "$ROOT_DIR/web/index.html" && rm -f "$ROOT_DIR/web/index.html.bak"
   
    # Refresh countryInfo to map country code to country name

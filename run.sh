@@ -22,13 +22,13 @@ done
 set -- "${POSITIONAL_ARGS[@]}"
 
 COUNTRY_CODE="${1:-DE}"
-UPLOAD_TARGET="${2:-qendpoint}"
-ENDPOINT_URL="${3:-https://geonames.need.energy/sparql}"
+DEPLOYED_TRIPLESTORE="${2:-qendpoint}"
+ENDPOINT_BASE_URL="${3:-https://geonames.need.energy/sparql}"
 
 # Persist key environment variables in .env for Docker Compose services
 echo "COUNTRY_CODE=$COUNTRY_CODE" > .env
-echo "UPLOAD_TARGET=$UPLOAD_TARGET" >> .env
-echo "ENDPOINT_URL=$ENDPOINT_URL" >> .env
+echo "DEPLOYED_TRIPLESTORE=$DEPLOYED_TRIPLESTORE" >> .env
+echo "ENDPOINT_BASE_URL=$ENDPOINT_BASE_URL" >> .env
 
 # Step 1: Download GeoNames data
 echo "[1/4] Downloading..."
@@ -39,7 +39,7 @@ echo "[2/4] Transforming..."
 docker compose -f docker-compose.yml up --build geonames-transform
 
 # Step 3: Merge RDF files into single dataset
-if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
+if [ "$DEPLOYED_TRIPLESTORE" == "qendpoint" ]; then
   echo "[3/4] Merging RDF files ..."
   docker compose -f docker-compose.yml up --build geonames-merge
 else
@@ -47,7 +47,7 @@ else
 fi
 
 # Step 4: Upload RDF data to target triple store and launch services
-echo "[4/4] Uploading to $UPLOAD_TARGET..."
+echo "[4/4] Uploading to $DEPLOYED_TRIPLESTORE..."
 
 # Always start geonames-web UI
 docker compose -f docker-compose.yml up --build -d geonames-web
@@ -60,13 +60,13 @@ else
   echo "Skipping nginx proxy (--no-proxy flag used)"
 fi
 
-if [ "$UPLOAD_TARGET" == "qendpoint" ]; then
+if [ "$DEPLOYED_TRIPLESTORE" == "qendpoint" ]; then
   docker compose -f docker-compose.yml up --build geonames-upload
   docker compose -f docker-compose.yml up --build -d qendpoint
-elif [ "$UPLOAD_TARGET" == "graphdb" ]; then
+elif [ "$DEPLOYED_TRIPLESTORE" == "graphdb" ]; then
   docker compose -f graphdb/docker-compose.upload.graphdb.yml up --build
 else
-  echo "Unknown upload target: $UPLOAD_TARGET"
+  echo "Unknown upload target: $DEPLOYED_TRIPLESTORE"
   exit 1
 fi
 
