@@ -69,7 +69,7 @@ done
 echo "[transform 7/8] Processing alternate names for $COUNTRY_CODE..."
 for f in "$DATA_DIR"/alternateNamesV2_${COUNTRY_CODE}_*.csv; do
     echo "  - Processing $f..."
-    java -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
+    java -Xmx4g -jar "$BIN_DIR/$SPARQL_ANYTHING_JAR" \
         --query "$CONFIG_DIR/alternateNames.rq" \
         -v "SOURCE=$f" \
         --load "$DATA_DIR"/geonames_${COUNTRY_CODE}_*.csv.ttl \
