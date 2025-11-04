@@ -1,0 +1,84 @@
+services:
+  # Download 
+  geonames-download:
+    build: .
+    container_name: geonames-download
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+    environment:
+      - COUNTRY_CODE=${COUNTRY_CODE:-DE}
+    command: sh -c "./scripts/entrypoint-download.sh $COUNTRY_CODE"
+
+  # Transform
+  geonames-transform:
+    build: .
+    container_name: geonames-transform
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./web:/app/web
+    environment:
+      - COUNTRY_CODE=${COUNTRY_CODE:-DE}
+    command: sh -c "./scripts/entrypoint-transform.sh $COUNTRY_CODE"
+
+  # Merge ontology and data
+  geonames-merge:
+    build: .
+    container_name: geonames-merge
+    volumes:
+      - ./output:/data
+    entrypoint: /bin/sh
+    command: |
+      -c "rapper -i rdfxml -o ntriples /data/ontology_v3.3_modified.rdf > /data/ontology.nt &&
+      rapper -i turtle -o ntriples /data/geonames_${COUNTRY_CODE}.ttl > /data/data.nt &&
+      cat /data/ontology.nt /data/data.nt > /data/merged.nt &&
+      rapper -i ntriples -o turtle /data/merged.nt > /data/geonames_${COUNTRY_CODE}_merged.ttl &&
+      rm /data/ontology.nt /data/data.nt /data/merged.nt"
+ 
+ # Upload
+  geonames-upload:
+    build: .
+    container_name: geonames-upload
+    environment:
+      - UPLOAD_QENDPOINT=true
+      - QENDPOINT_HOST=qendpoint
+      - COUNTRY_CODE=${COUNTRY_CODE:-DE}
+    volumes:
+      - ./output:/output
+    depends_on:
+      - qendpoint
+    command: sh -c "./scripts/entrypoint-upload.sh $COUNTRY_CODE"
+
+  # Web frontend service
+  geonames-web:
+    build: ./web
+    container_name: geonames-web
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./output:/usr/share/nginx/html/output
+
+  # QEndpoint
+  qendpoint:
+    image: qacompany/qendpoint
+    container_name: qendpoint
+    ports:
+      - "7400:1234"
+    environment:
+      - MEM_SIZE=2G
+    restart: always
+
+  # NGINX proxy
+  nginx:
+    build: ./nginx-proxy
+    container_name: qendpoint-nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - qendpoint
+      - geonames-web
+    profiles:
+      - proxy

@@ -1,0 +1,21 @@
+services:
+  graphdb:
+    image: ontotext/graphdb:10.8.9
+    container_name: graphdb
+    ports:
+      - "7200:7200"
+    volumes:
+      - ./graphdb-data:/opt/graphdb/home
+
+  geonames-upload:
+    build: ..
+    container_name: geonames-upload
+    environment:
+      - UPLOAD_GRAPHDB=true
+      - GRAPHDB_HOST=graphdb
+      - COUNTRY_CODE  
+    volumes:
+      - ./output:/output
+    depends_on:
+      - graphdb
+    command: sh -c "./scripts/entrypoint-upload.sh $COUNTRY_CODE"

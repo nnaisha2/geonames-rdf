@@ -1,58 +1,183 @@
-PREFIX apf: <http://jena.apache.org/ARQ/property#>
 PREFIX fx: <http://sparql.xyz/facade-x/ns/>
-PREFIX gn: <https://www.geonames.org/ontology#>
 PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX gn: <http://www.geonames.org/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX cc: <http://creativecommons.org/ns#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX time: <http://www.w3.org/2006/time#>
+
 
 CONSTRUCT {
-    ?uri
-        a gn:Feature ;
-        gn:name ?name ;
-        gn:alternateName ?alternateName ;
-        gn:countryCode ?countryCode ;
-        gn:featureClass ?featureClass ;
-        gn:featureCode ?featureCode ;
-        gn:parentADM1 ?parentAdm1 ;
-        gn:parentADM2 ?parentAdm2 ;
-        wgs84_pos:lat ?latitudeFloat ;
-        wgs84_pos:long ?longitudeFloat ;
+  # --- Feature triples ---
+  ?uri a gn:Feature ;
+    rdfs:isDefinedBy ?definitionDoc ;
+    gn:countryCode ?countryCode ;
+    gn:featureClass ?featureClass ;
+    gn:featureCode ?featureCode ;
+    gn:population ?population ;
+    wgs84_pos:lat ?latitudeDecimal ;
+    wgs84_pos:long ?longitudeDecimal ;
+    ?proximityPredicate ?proximityEndpoint ;
+    gn:locationMap ?locationMapUri ;
+    gn:parentCountry ?parentCountry ;
+    gn:parentADM1 ?parentAdm1 ;
+    gn:parentADM2 ?parentAdm2 ;
+    gn:parentADM3 ?parentAdm3 ;
+    gn:parentADM4 ?parentAdm4 ;
+    wgs84_pos:alt ?altDecimal ;
+    gn:childrenFeatures ?child ;
+    gn:parentFeature ?finalParentFeature ;
+    gn:name ?bestName .
+
+  # --- Document triples ---
+  ?definitionDoc a foaf:Document ;
+    foaf:primaryTopic ?uri ;
+    cc:license <https://creativecommons.org/licenses/by/4.0/> ;
+    cc:attributionURL <https://www.geonames.org> ;
+    cc:attributionName "GeoNames"^^xsd:string ;
+    dcterms:modified ?modDate .
 }
 WHERE {
-    SERVICE <x-sparql-anything:> {
-        fx:properties
-            fx:location "{SOURCE}" ;
-            fx:ondisk "/tmp/sparql-anything-geonames" ; # Ondisk storage is slower but required to prevent OOM.
-            fx:ondisk.reuse false ; # Prevents OOM.
-            fx:null-string "" ; # Skip empty alternate names.
-            fx:csv.delimiter "\t" ;
-            fx:csv.headers true ;
-        .
+  SERVICE <x-sparql-anything:> {
+    fx:properties
+      fx:location ?_SOURCE ;
+      fx:ondisk "/tmp/sparql-anything-geonames" ; # Ondisk storage is slower but required to prevent OOM.
+      fx:ondisk.reuse false ; # Prevents OOM.
+      fx:null-string "" ; 
+      fx:csv.delimiter "\t" ;
+      fx:csv.headers true ;
+      fx:slice "5000"
+    .
 
-        ?s xyz:geonameid ?id ;
-            xyz:name ?name ;
-            xyz:country%20code ?countryCode ;
-            xyz:feature%20class ?featureClassString ;
-            xyz:feature%20code ?featureCodeString ;
-            xyz:adm1 ?adm1 ;
-            xyz:adm2 ?adm2 ; # Not all places have a parentAdm2, but we use a special ‘NONE’ value so we can join non-OPTIONALly.
-            xyz:latitude ?latitude ;
-            xyz:longitude ?longitude ;
-        .
 
-        OPTIONAL {
-            ?s xyz:alternatenames ?alternateNameString .
-            ?alternateName apf:strSplit (?alternateNameString ",") .
-        }
+    ?s xyz:geonameid ?id ;
+       xyz:asciiname ?asciiname ;
+       xyz:country%20code ?countryCode ;
+       xyz:feature%20class ?featureClassString ;
+       xyz:latitude ?latitude ;
+       xyz:longitude ?longitude ;
+       xyz:bestName ?bestName ;
+       xyz:population ?populationRaw .
+    BIND(xsd:integer(?populationRaw) AS ?population)
 
-        BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) as ?uri)
-        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString)) as ?featureClass)
-        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)) as ?featureCode)
-        BIND(xsd:float(?latitude) AS ?latitudeFloat)
-        BIND(xsd:float(?longitude) AS ?longitudeFloat)
+    
+    OPTIONAL { ?s xyz:feature%20code ?featureCodeString . }
+    OPTIONAL { ?s xyz:elevation ?elevationRaw . }
+    OPTIONAL { ?s xyz:dem ?demRaw . }
+    OPTIONAL { ?s xyz:modification%20date ?modDateRaw . }
+    OPTIONAL { ?s xyz:adm1 ?adm1FullCode . }
+    OPTIONAL { ?s xyz:adm2 ?adm2FullCode . }
+    OPTIONAL { ?s xyz:admin3%20code ?admin3LocalCode . }
+    OPTIONAL { ?s xyz:admin4%20code ?admin4LocalCode . }
+
+    
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) AS ?uri)
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/about.rdf")) AS ?definitionDoc)
+    BIND(URI(CONCAT("http://www.geonames.org/ontology#", ?featureClassString)) AS ?featureClass)
+    BIND(IF(BOUND(?featureCodeString) && ?featureCodeString != "", 
+         URI(CONCAT("http://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)), 
+         "" ) AS ?featureCode )
+    BIND(xsd:decimal(?latitude) AS ?latitudeDecimal)
+    BIND(xsd:decimal(?longitude) AS ?longitudeDecimal)
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/contains.rdf")) AS ?child)
+    BIND(URI(CONCAT("https://www.geonames.org/", ?id, "/", 
+         REPLACE(REPLACE(LCASE(?asciiname), ",", ""), " ", "-"), ".html")) AS ?locationMapUri)
+    BIND(xsd:date(?modDateRaw) AS ?modDate)
+    
+    # --- Altitude logic ---
+    BIND(xsd:decimal(?elevationRaw) AS ?altelevation)
+    BIND(xsd:decimal(?demRaw) AS ?altdem)
+    FILTER(!(BOUND(?altelevation) && STR(?altelevation) = ""))
+    BIND(COALESCE(?altelevation, ?altdem) AS ?altDecimal)
+
+    # --- Proximity predicate and endpoint logic ---
+    BIND(
+      IF(?featureClassString = "A" && ?featureCodeString = "PCLI",
+        gn:neighbouringFeatures,
+        gn:nearbyFeatures
+      ) AS ?proximityPredicate
+    )
+    BIND(
+      IF(?featureClassString = "A" && ?featureCodeString = "PCLI",
+        URI(CONCAT("https://sws.geonames.org/", ?id, "/neighbours.rdf")),
+        URI(CONCAT("https://sws.geonames.org/", ?id, "/nearby.rdf"))
+      ) AS ?proximityEndpoint
+    )
+  }
+
+  # --- Admin code processing ---
+  BIND(IF(BOUND(?adm2FullCode) && BOUND(?admin3LocalCode) && ?admin3LocalCode != "" && ?admin3LocalCode != "NONE", 
+       CONCAT(?adm2FullCode, ".", ?admin3LocalCode), 
+       "" ) AS ?adm3FullCode )
+  BIND(IF(?adm3FullCode != "" && BOUND(?admin4LocalCode) && ?admin4LocalCode != "" && ?admin4LocalCode != "NONE", 
+       CONCAT(?adm3FullCode, ".", ?admin4LocalCode), 
+       "" ) AS ?adm4FullCode )
+
+  # --- Loading country codes---
+  {
+    SELECT ?countryCode ?countryUri
+    WHERE {
+      SERVICE <x-sparql-anything:> {
+        fx:properties fx:location "data/country-codes.csv" ;
+                      fx:csv.headers "true" ;
+                      fx:csv.delimiter "\t" .
+        ?row xyz:countryId ?countryId ;
+             xyz:countryCode ?countryCode ;
+             xyz:name ?countryName .
+        BIND(URI(CONCAT("https://sws.geonames.org/", ?countryId, "/")) AS ?countryUri)
+      }
     }
+  }
 
-    OPTIONAL { ?parentAdm1 xyz:admin1Code ?adm1 }
-    OPTIONAL { ?parentAdm2 xyz:admin2Code ?adm2 }
+  # --- Join by country code ---
+  FILTER(?countryCode != "")
+  BIND(?countryUri AS ?parentCountry)
+
+  OPTIONAL {
+    FILTER(BOUND(?adm1FullCode) && ?adm1FullCode != "")
+    ?parentAdm1 xyz:admin1Code ?adm1FullCode .
+    FILTER(?parentAdm1 != ?uri)
+  }
+  OPTIONAL {
+    FILTER(BOUND(?adm2FullCode) && ?adm2FullCode != "")
+    ?parentAdm2 xyz:admin2Code ?adm2FullCode .
+    FILTER(?parentAdm2 != ?uri)
+  }
+  OPTIONAL {
+    FILTER(?adm3FullCode != "")
+    ?parentAdm3 xyz:admin3Code ?adm3FullCode .
+    FILTER(?parentAdm3 != ?uri)
+  }
+  OPTIONAL {
+    FILTER(?adm4FullCode != "")
+    ?parentAdm4 xyz:admin4Code ?adm4FullCode .
+    FILTER(?parentAdm4 != ?uri)
+  }
+
+  # --- BIND the most specific parent for gn:parentFeature ---
+  BIND(COALESCE(?parentAdm4, ?parentAdm3, ?parentAdm2, ?parentAdm1) AS ?parent)
+
+  # --- Country-level parent features (from hierarchy-country-level.csv) ---
+  OPTIONAL {
+    SERVICE <x-sparql-anything:> {
+      fx:properties fx:location "data/country-parent-features-with-header.csv" ;
+                    fx:csv.headers "true" ;
+                    fx:csv.delimiter "\t" .
+      ?parentRow xyz:parentId ?parentId ;
+                xyz:childId ?childId .
+    }
+    FILTER(STR(?id) = STR(?childId))
+    BIND(URI(CONCAT("https://sws.geonames.org/", ?parentId, "/")) AS ?countryParentFeature)
+  }
+
+  # --- Use country as parent for ADM1 features ---
+  BIND(
+    IF(?featureClassString = "A" && ?featureCodeString = "ADM1",
+       ?parentCountry, 
+       COALESCE(?parent, ?countryParentFeature)  
+    ) AS ?finalParentFeature
+  )
 }

@@ -1,0 +1,111 @@
+PREFIX gn: <http://www.geonames.org/ontology#>  
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>   
+PREFIX dcterms: <http://purl.org/dc/terms/>         
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>     
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>   
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+CONSTRUCT {
+  ?featureURI gn:alternateName ?alternateName ;
+              gn:postalCode ?postalCode ;
+              gn:officialName ?officialName ;
+              gn:shortName ?shortName ;
+              gn:wikipediaArticle ?wikipediaArticle ;
+              rdfs:seeAlso ?dbpediaResource .
+}
+WHERE {
+  SERVICE <x-sparql-anything:> {
+    fx:properties
+      fx:location ?_SOURCE_iri ;
+      fx:csv.headers "true" ;
+      fx:csv.delimiter "\t" ;
+      fx:csv.null-string "" .
+
+    ?row xyz:geonameid ?geonameid ;
+         xyz:alternateName ?nameValue .
+
+    OPTIONAL { ?row xyz:isolanguage ?langRaw . FILTER(STR(?langRaw)) BIND(STR(?langRaw) AS ?lang) }
+    OPTIONAL { ?row xyz:isPreferredName ?prefRaw . FILTER(STR(?prefRaw)) BIND(STR(?prefRaw) AS ?pref) }
+    OPTIONAL { ?row xyz:isShortName ?shortRaw . FILTER(STR(?shortRaw)) BIND(STR(?shortRaw) AS ?short) }
+
+    BIND(IRI(CONCAT("https://sws.geonames.org/", STR(?geonameid), "/")) AS ?featureURI)
+
+    # Wikipedia Article (lang="link")
+    BIND(
+      IF(
+        BOUND(?lang) && ?lang = "link" && REGEX(STR(?nameValue), "^https?://[a-z-]+\\.wikipedia\\.org/wiki/"),
+        IRI(STR(?nameValue)),
+        ?undef
+      ) AS ?wikipediaArticle
+    )
+
+
+    # DBpedia Resource (from Wikipedia)
+    #    * If the Wikipedia article title contains '%', assume it's already encoded and use as-is.
+    #    * Otherwise, encode it for URI safety.
+    
+    BIND(
+      IF(
+        BOUND(?wikipediaArticle) && REGEX(STR(?wikipediaArticle), "^https?://en\\.wikipedia\\.org/wiki/"),
+        IRI(CONCAT(
+          "https://dbpedia.org/resource/",
+          IF(
+            CONTAINS(STR(?wikipediaArticle), "%"),
+            REPLACE(STR(?wikipediaArticle), "^https?://en\\.wikipedia\\.org/wiki/", ""),
+            ENCODE_FOR_URI(REPLACE(STR(?wikipediaArticle), "^https?://en\\.wikipedia\\.org/wiki/", ""))
+          )
+        )),
+        ?undef
+      ) AS ?dbpediaResource
+    )
+
+BIND(
+  IF(
+    BOUND(?short) && ?short = "1",
+    ?undef,  # skip alternateName if shortName=1
+    IF(
+      BOUND(?pref) && ?pref = "1",
+      ?undef,  # skip alternateName if official name
+      IF(
+        BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+        STRLANG(STR(?nameValue), ?lang),
+        IF(
+          (!BOUND(?lang) || STRLEN(STR(?lang)) = 0),
+          STR(?nameValue),
+          ?undef
+        )
+      )
+    )
+  ) AS ?alternateName
+)
+
+    # Postal Codes (lang="post")
+    BIND(
+      IF(BOUND(?lang) && ?lang = "post", 
+        STR(?nameValue), 
+        ?undef
+      ) AS ?postalCode
+    )
+
+    # Official Names (preferred + language-tagged)
+   BIND(
+  IF(BOUND(?lang) && BOUND(?pref) && ?pref = "1" && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+    STRLANG(STR(?nameValue), ?lang),
+    ?undef
+  ) AS ?officialName
+)
+
+    # Short Names (isShortName=1)
+    BIND(
+  IF(
+    BOUND(?short) && ?short = "1",
+    IF(
+      BOUND(?lang) && ?lang != "link" && ?lang != "post" && REGEX(?lang, "^[a-z]{2,3}$"),
+      STRLANG(STR(?nameValue), ?lang),
+      STR(?nameValue)
+    ),
+    ?undef
+  ) AS ?shortName
+   )
+  }
+}

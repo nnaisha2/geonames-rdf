@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SPARQL Endpoint Based on GeoNames CSV Dump</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="fortiss-icon.ico" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@zazuko/yasgui@4.5.0/build/yasgui.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Visualization styling -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      .yasr-plugin-container {
+        height: 460px;
+        position: relative;
+      }
+      .yasr-plugin-container .fill {
+        position: absolute;
+        inset: 0;
+      }
+      .yasr-plugin-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>SPARQL Endpoint Based on GeoNames CSV Dump</h1>
+      <nav>
+        <a href="#">Home</a>
+        <a href="docs.html">Docs</a>
+      </nav>
+    </header>
+    <main>
+      <section id="intro">
+        <p>
+          This SPARQL endpoint that is available at
+          https://geonames.need.energy/sparql provides access to an RDF dataset
+          covering [COUNTRY_NAME] that was generated based on the free GeoNames
+          CSV dumps.
+          <a
+            href="https://download.geonames.org/export/"
+            target="_blank"
+            rel="noopener"
+            >GeoNames</a
+          >
+          is a comprehensive geographical database containing over 25 million
+          geographical names. The data includes information about places, their
+          alternative names, population, elevation, administrative hierarchy,
+          and geographical coordinates. This transformation to RDF enables
+          sophisticated queries across the entire dataset using the semantic
+          query language SPARQL.
+        </p>
+        <p>
+          On this webpage, you can find a direct download of this dataset, the
+          aforementioned SPARQL endpoint, and an interactive query editor for
+          it. You can explore relationships between geographical entities,
+          filter locations by various criteria, and perform complex queries
+          across the dataset. The underlying RDF representation preserves the
+          rich structure of the original GeoNames data while enabling advanced
+          query capabilities. Example queries are provided to help you get
+          started with exploring the dataset's capabilities.
+        </p>
+      </section>
+      <section id="Terms-and-Conditions">
+        <h2>Terms and Conditions</h2>
+        <p>
+          This work is licensed under a
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noopener"
+          >
+            Creative Commons Attribution 4.0 International License (CC BY 4.0)</a
+          >. It is provided "as is", without any warranty or guarantee of
+          accuracy, timeliness, or completeness. It is adapted from the
+          <a
+            href="https://www.geonames.org/export/"
+            target="_blank"
+            rel="noopener"
+            >GeoNames Data</a
+          >, which is also licensed under a CC BY 4.0 license. See also the
+          Terms and Conditions section of the
+          <a
+            href="https://www.geonames.org/export/"
+            target="_blank"
+            rel="noopener"
+            >Download / Webservice</a
+          >
+          page of GeoNames, the license information in the corresponding
+          <a
+            href="https://download.geonames.org/export/dump/readme.txt"
+            target="_blank"
+            rel="noopener"
+            >readme</a
+          >, as well as the founder, project, and contact information on the
+          <a
+            href="https://www.geonames.org/about.html"
+            target="_blank"
+            rel="noopener"
+            >About</a
+          >
+          page. The GeoNames Data aggregates data from
+          <a
+            href="https://www.geonames.org/datasources/"
+            target="_blank"
+            rel="noopener"
+            >various sources</a
+          >; where required, attribution to original providers is retained.
+        </p>
+      </section>
+      <section id="top-info" class="top-info">
+        <div class="download-block">
+          <h2>Download RDF Dataset</h2>
+          <p>
+            You can download the latest version of the generated RDF dataset,
+            which is based on the GeoNames dump from
+            <span id="dumpDate">[DATE], in the Turtle (.ttl) RDF format</span>.
+          </p>
+          <div class="download-options">
+            <a id="rdfZipDownloadLink" href="output/[VERSIONED_FILE]" download>
+              Download Zipped Turtle File
+            </a>
+          </div>
+        </div>
+        <div class="docs-block">
+          <h2>Documentation & Known Limitations</h2>
+          <p>
+            Learn more about the dataset, its structure, and known usage caveats
+            by visiting the documentation page.
+          </p>
+          <a href="docs.html">View Documentation</a>
+        </div>
+      </section>
+
+      <section id="custom-query">
+        <h2>SPARQL Query Editor</h2>
+        <div class="examples">
+          <select id="exampleQueries">
+            <option value="">Select an example query</option>
+            <option value="all">All triples (limit 10)</option>
+            <option value="population">
+              Municipalities with a population above 1 million
+            </option>
+            <option value="municipalities">
+              Municipalities in a rural district
+            </option>
+            <option value="hierarchy">
+              Administrative hierarchy above a city
+            </option>
+            <option value="museums">Museums in a city</option>
+            <option value="graph_administrative_subdivisions">
+              Administrative subdivisions (graph)
+            </option>
+          </select>
+        </div>
+        <input
+          type="text"
+          id="endpointInput"
+          value="[ENDPOINT_BASE_URL]"
+          size="50"
+        />
+        <div id="yasgui"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        This work is licensed under a
+        <a
+          href="https://creativecommons.org/licenses/by/4.0/"
+          target="_blank"
+          rel="noopener"
+        >
+          Creative Commons Attribution 4.0 International License (CC BY 4.0)</a
+        >.<br />
+        For contact information and funding acknowledgment, see the
+        <a href="https://need.energy/" target="_blank" rel="noopener"
+          >website of the NEED project</a
+        >.
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@zazuko/yasgui@4.5.0/build/yasgui.min.js"></script>
+    <!-- Visualization libs -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

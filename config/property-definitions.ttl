@@ -1,0 +1,8 @@
+PREFIX wdt: <http://www.wikidata.org/prop/direct/> 
+PREFIX owl: <http://www.w3.org/2002/07/owl#> 
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+
+
+wdt:P439 a owl:DatatypeProperty ;
+    skos:prefLabel "Amtlicher Gemeindeschlüssel"@de, "German municipality key"@en .

@@ -1,3 +1,9 @@
 data/*
 bin/*
 fuseki/*
+output/*
+!output/ontology_v3.3_modified.rdf
+web/index.html
+.env
+graphdb/graphdb-data
+graphdb/output

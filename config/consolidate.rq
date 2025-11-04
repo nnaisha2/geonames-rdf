@@ -1,0 +1,66 @@
+PREFIX gn: <http://www.geonames.org/ontology#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+
+CONSTRUCT {
+  ?uri ?p ?o .
+  ?doc ?dp ?dv .
+  ?property ?pp ?po .
+}
+WHERE {
+  {
+    ?uri a gn:Feature ;
+         ?p ?o .
+
+    # --- Filter out gn:parentCountry only for country entities ---
+    FILTER(!(?p = gn:parentCountry && EXISTS {
+      ?uri a gn:Feature ;
+           gn:featureClass gn:A ;
+           gn:featureCode gn:A.PCLI .
+    }))
+
+    # --- Filter out gn:nearbyFeatures triples for ADM1 features ---
+    FILTER( !(
+      ?p = gn:nearbyFeatures &&
+      EXISTS {
+        ?uri gn:featureClass gn:A ;
+             gn:featureCode gn:A.ADM1 .
+      }
+    ))
+
+    # --- Filter out gn:population triples where population is 0 ---
+    FILTER( !(
+      ?p = gn:population &&
+      ( ?o = 0 || ?o = "0"^^xsd:integer || ?o = "0" )
+    ))
+
+    # --- Filter out altitude values where the value is -9999 ---
+    FILTER(
+      !(
+        (?p = wgs84_pos:alt &&
+         (
+           !isLiteral(?o) ||
+           isBlank(?o) ||
+           (
+             (datatype(?o) = xsd:decimal || datatype(?o) = xsd:double) 
+             && (xsd:decimal(?o) = -9999)
+           )
+         )
+        )
+      )
+    )
+  }
+  UNION
+  {
+    ?doc a foaf:Document ;
+         ?dp ?dv .
+  }
+  UNION
+  {
+    ?property a owl:DatatypeProperty ;
+              ?pp ?po .
+  }
+}
+ORDER BY ?uri

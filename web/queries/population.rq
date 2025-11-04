@@ -1,0 +1,15 @@
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX gn: <http://www.geonames.org/ontology#>
+
+SELECT ?feature ?name ?population ?latitude ?longitude
+WHERE {
+  ?feature a gn:Feature ;
+  gn:featureCode gn:A.ADM4 ;
+  gn:name ?name ;
+  gn:population ?population ;
+  wgs84_pos:lat ?latitude ;
+  wgs84_pos:long ?longitude .
+
+  FILTER(1000000 < ?population)
+}
+ORDER BY DESC(?population)
