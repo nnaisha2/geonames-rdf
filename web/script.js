@@ -106,16 +106,30 @@ class LeafletMapPlugin {
       // try reading possible latitude/longitude variable names
       const lat = parseFloat(r.lat || r.latitude || r.latDecimal || r.latDeg);
       const lon = parseFloat(r.long || r.lon || r.longitude || r.longDecimal || r.longDeg);
-      const uri = r.feature || r.uri || r.url || null; // URI for linked data
+      const rawUri = r.feature || r.uri || r.url || null; // URI for linked data
+      // Only link http(s) URIs; anything else (e.g. javascript:) is shown as plain text.
+      const uri = rawUri && /^https?:\/\//i.test(rawUri) ? rawUri : null;
       const label = r.label || r.name || r.s || '';
       // Add marker only if lat and lon are valid numbers
       if (isFinite(lat) && isFinite(lon)) {
-        const popupContent = uri ? `<a href="${uri}" target="_blank">${label}</a>` : label; // popup text
+        // Build the popup from DOM nodes: names come from the data (GeoNames is
+        // publicly editable) and must never be parsed as HTML.
+        let popupContent;
+        if (uri) {
+          popupContent = document.createElement('a');
+          popupContent.href = uri;
+          popupContent.target = '_blank';
+          popupContent.rel = 'noopener noreferrer';
+          popupContent.textContent = label || uri;
+        } else {
+          popupContent = document.createElement('span');
+          popupContent.textContent = label;
+        }
         const m = L.marker([lat, lon]).bindPopup(popupContent); // create Leaflet marker with popup
 
-        // Enable click on marker to open URI in a new tab
-        if (uri && /^https?:\/\//.test(uri)) {
-          m.on('dblclick', () => window.open(uri, '_blank'));
+        // Enable double-click on marker to open URI in a new tab
+        if (uri) {
+          m.on('dblclick', () => window.open(uri, '_blank', 'noopener'));
         }
 
         m.addTo(this.map); // add marker to map
