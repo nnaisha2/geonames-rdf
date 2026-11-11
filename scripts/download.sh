@@ -8,6 +8,7 @@ ROOT_DIR="$SCRIPT_DIR/.."
 CONFIG_DIR="$ROOT_DIR/config"      
 DATA_DIR="$ROOT_DIR/data"          
 DOWNLOAD_DIR="$DATA_DIR/downloads"
+TEMP_DIR="$DATA_DIR/temp"        # scratch space for unzipping (inside the writable data mount)
 COUNTRY_CODE="${1:-DE}"  # Default to DE 
 : "${CHUNK_SIZE:=1000000}"    
 mkdir -p "$DATA_DIR" "$DOWNLOAD_DIR"
@@ -72,7 +73,7 @@ fi
 
 # Step 4: Clear old data
 echo "[process 4/18] Cleaning up previous data files for $COUNTRY_CODE..."
-rm -rf "$DATA_DIR/geonames_${COUNTRY_CODE}.csv" temp 2>/dev/null
+rm -rf "$DATA_DIR/geonames_${COUNTRY_CODE}.csv" "$TEMP_DIR" 2>/dev/null
 
 # Step 5: Download & merge base country file(s)
 for cfile in $COUNTRY_CODE; do
@@ -83,8 +84,8 @@ for cfile in $COUNTRY_CODE; do
         echo "Error: Failed to download $cfile.zip"
         exit 1
     fi
-    mkdir -p temp
-    cd temp
+    mkdir -p "$TEMP_DIR"
+    cd "$TEMP_DIR"
     echo "  - Unzipping $cfile.zip..."
     unzip -qo "$DOWNLOAD_DIR/$cfile.zip"
     if [ ! -f "$cfile.txt" ]; then
@@ -94,8 +95,8 @@ for cfile in $COUNTRY_CODE; do
     mkdir -p "$DATA_DIR"
     echo "  - Appending $cfile.txt to geonames_${COUNTRY_CODE}.csv..."
     cat "$cfile.txt" >> "$DATA_DIR/geonames_${COUNTRY_CODE}.csv"
-    cd ..
-    rm -rf temp
+    cd "$ROOT_DIR"
+    rm -rf "$TEMP_DIR"
 done
 
 # Step 6: Add admin division keys
@@ -110,8 +111,8 @@ awk -F'\t' 'NR>1 {print $1}' "$DATA_DIR/geonamesplus_${COUNTRY_CODE}.csv" > "$DA
 # Step 8: Filter alternate names for country
 echo "[process 8/18] Downloading and filtering alternate names data for $COUNTRY_CODE..."
 conditional_download "https://download.geonames.org/export/dump/alternateNamesV2.zip" "$DOWNLOAD_DIR/alternateNamesV2.zip"
-mkdir -p temp
-cd temp
+mkdir -p "$TEMP_DIR"
+cd "$TEMP_DIR"
 echo "  - Unzipping alternateNamesV2.zip..."
 unzip -qo "$DOWNLOAD_DIR/alternateNamesV2.zip" alternateNamesV2.txt
 if [ ! -f "alternateNamesV2.txt" ]; then
@@ -125,8 +126,8 @@ echo "  - Filtering alternateNamesV2.txt for geonameIDs of $COUNTRY_CODE..."
 # - Normalize row length (10 fields)
 awk -F'\t' -v OFS='\t' 'NR==FNR {ids[$1]; next} $2 in ids {for(i=NF+1;i<=10;i++) $i=""; print}' \
     "$DATA_DIR/geonameids_${COUNTRY_CODE}.txt" alternateNamesV2.txt > "$DATA_DIR/alternateNamesV2_${COUNTRY_CODE}.csv"
-cd ..
-rm -rf temp
+cd "$ROOT_DIR"
+rm -rf "$TEMP_DIR"
 
 # Step 9: Split alternate names into chunks
 echo "[process 9/18] Splitting alternate names into chunks for $COUNTRY_CODE..."
@@ -172,8 +173,8 @@ rm "$DATA_DIR/country-codes.txt"
 echo "[process 14/18] Downloading and processing hierarchy data for $COUNTRY_CODE..."
 cp "$CONFIG_DIR/headers-hierarchy.csv" "$DATA_DIR/hierarchy.csv"
 conditional_download "https://download.geonames.org/export/dump/hierarchy.zip" "$DOWNLOAD_DIR/hierarchy.zip"
-mkdir -p temp
-cd temp
+mkdir -p "$TEMP_DIR"
+cd "$TEMP_DIR"
 echo "    - Unzipping hierarchy.zip..."
 unzip -qo "$DOWNLOAD_DIR/hierarchy.zip" hierarchy.txt
 if [ ! -f "hierarchy.txt" ]; then
@@ -181,8 +182,8 @@ if [ ! -f "hierarchy.txt" ]; then
     exit 1
 fi
 cat hierarchy.txt >> "$DATA_DIR/hierarchy.csv"
-cd ..
-rm -rf temp
+cd "$ROOT_DIR"
+rm -rf "$TEMP_DIR"
 
 echo "Filtering hierarchy for country-level relationships..."
 tail -n +2 "$DATA_DIR/country-codes.csv" | cut -f1 > "$DATA_DIR/country-ids.txt"

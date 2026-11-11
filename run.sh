@@ -29,19 +29,32 @@ ENDPOINT_BASE_URL="${3:-https://geonames.need.energy/sparql}"
 echo "COUNTRY_CODE=$COUNTRY_CODE" > .env
 echo "DEPLOYED_TRIPLESTORE=$DEPLOYED_TRIPLESTORE" >> .env
 echo "ENDPOINT_BASE_URL=$ENDPOINT_BASE_URL" >> .env
+# Pipeline containers run as the current user (see `user:` in docker-compose.yml)
+echo "HOST_UID=$(id -u)" >> .env
+echo "HOST_GID=$(id -g)" >> .env
+
+# Earlier versions ran the containers as root, leaving root-owned files behind
+# that the unprivileged containers cannot overwrite.
+for path in data output web/index.html; do
+  if [ -e "$path" ] && [ -n "$(find "$path" ! -user "$(id -u)" -print -quit)" ]; then
+    echo "Error: '$path' contains files not owned by $(id -un) (probably from an earlier run as root)."
+    echo "Fix with: sudo chown -R $(id -u):$(id -g) data output web"
+    exit 1
+  fi
+done
 
 # Step 1: Download GeoNames data
 echo "[1/4] Downloading..."
-docker compose -f docker-compose.yml up --build geonames-download
+docker compose -f docker-compose.yml up --build --exit-code-from geonames-download geonames-download
 
 # Step 2: Transform data into intermediate RDF formats
 echo "[2/4] Transforming..."
-docker compose -f docker-compose.yml up --build geonames-transform
+docker compose -f docker-compose.yml up --build --exit-code-from geonames-transform geonames-transform
 
 # Step 3: Merge RDF files into single dataset
 if [ "$DEPLOYED_TRIPLESTORE" == "qendpoint" ]; then
   echo "[3/4] Merging RDF files ..."
-  docker compose -f docker-compose.yml up --build geonames-merge
+  docker compose -f docker-compose.yml up --build --exit-code-from geonames-merge geonames-merge
 else
   echo "[3/4] Skipping RDF merge ..."
 fi
@@ -62,9 +75,12 @@ fi
 
 if [ "$DEPLOYED_TRIPLESTORE" == "qendpoint" ]; then
   docker compose -f docker-compose.yml up --build geonames-upload
+  # Not --exit-code-from here: it would also stop the qendpoint dependency
+  [ "$(docker inspect -f "{{.State.ExitCode}}" geonames-upload)" = 0 ] || { echo "Upload failed."; exit 1; }
   docker compose -f docker-compose.yml up --build -d qendpoint
 elif [ "$DEPLOYED_TRIPLESTORE" == "graphdb" ]; then
-  docker compose -f graphdb/docker-compose.upload.graphdb.yml up --build
+  # This compose file lives in graphdb/, so point it at the .env in the repo root explicitly
+  docker compose --env-file .env -f graphdb/docker-compose.upload.graphdb.yml up --build
 else
   echo "Unknown upload target: $DEPLOYED_TRIPLESTORE"
   exit 1

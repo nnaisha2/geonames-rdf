@@ -1,5 +1,12 @@
+.git/
 .github/
 .idea/
+.env
 bin/
 data/
 temp/
+# Generated data is bind-mounted at run time, never baked into the image
+output/
+graphdb/graphdb-data/
+graphdb/output/
+web/index.html

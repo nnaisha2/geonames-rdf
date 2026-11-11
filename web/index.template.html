@@ -7,19 +7,30 @@
 
     <link rel="stylesheet" href="style.css" />
     <link rel="icon" href="fortiss-icon.ico" />
+    <!--
+      Subresource Integrity: the browser refuses CDN files whose hash does not match.
+      When bumping a library version, recompute its hash, e.g.:
+        curl -sL <url> | openssl dgst -sha384 -binary | openssl base64 -A
+    -->
     <link
       href="https://cdn.jsdelivr.net/npm/@zazuko/yasgui@4.6.2/build/yasgui.min.css"
       rel="stylesheet"
+      integrity="sha384-XrXS+j7Q5QPO5/8oDm3teEl9OpxieOPoG+28Qw1GpFjZcEGvZw++uYGBsSy/E3df"
+      crossorigin="anonymous"
     />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.21/codemirror.min.css"
       rel="stylesheet"
+      integrity="sha512-yAvYFCgl0jKssk1XXo079Ec7sVXfN3OIotWiUP7zTrHhcRxMgRnEFjYhesnBZSfYPkd3sX7BmVTaWQLXvITMnQ=="
+      crossorigin="anonymous"
     />
 
     <!-- Visualization styling -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+      crossorigin="anonymous"
     />
     <style>
       .yasr-plugin-container {
@@ -197,11 +208,27 @@
       </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@zazuko/yasgui@4.6.2/build/yasgui.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@zazuko/yasgui@4.6.2/build/yasgui.min.js"
+      integrity="sha384-PHnh6NwOkxapuqrOSGWoU3gL5yzpM3UyH8b61pBZa2CGVBIx3zaMRua0OjVzxTE5"
+      crossorigin="anonymous"
+    ></script>
     <!-- Visualization libs -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/vis-network@10.1.4/standalone/umd/vis-network.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"></script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/vis-network@10.1.4/standalone/umd/vis-network.min.js"
+      integrity="sha384-s5qRgSwXYyGRFMyysTjQ6HHeKJIuO9uEi4yIC8DaDDLggONJZWE/CydMFXSh/04I"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js"
+      integrity="sha384-Emf5ZVIUiarAdhkgtqK+5/Z5qIvM6QoVrS+qAVtfyZVuD5lIHrac0me485+Antp0"
+      crossorigin="anonymous"
+    ></script>
     <script src="script.js"></script>
   </body>
 </html>

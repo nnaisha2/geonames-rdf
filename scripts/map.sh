@@ -12,6 +12,8 @@ CONFIG_DIR="$ROOT_DIR/config"
 OUTPUT_DIR="$ROOT_DIR/output"
 SPARQL_ANYTHING_VERSION="${SPARQL_ANYTHING_VERSION:-v1.3.0}"
 SPARQL_ANYTHING_JAR="sparql-anything-$SPARQL_ANYTHING_VERSION.jar"
+# SHA-256 of the v1.3.0 jar; keep in sync with the Dockerfile
+SPARQL_ANYTHING_SHA256="${SPARQL_ANYTHING_SHA256:-0855bc869a35f83c4a97a5d31ca65e9f4ff16fd9c5a4f619ad7a7bd508053414}"
 CURRENT_DATE=$(date +%F)
 
 
@@ -23,8 +25,20 @@ mkdir -p "$OUTPUT_DIR" "$BIN_DIR"
 echo "[transform 2/8] Checking for SPARQL Anything JAR..."
 if [ ! -f "$BIN_DIR/$SPARQL_ANYTHING_JAR" ]; then
     echo "  - Downloading SPARQL Anything..."
-    curl -sSL "https://github.com/SPARQL-Anything/sparql.anything/releases/download/${SPARQL_ANYTHING_VERSION}/${SPARQL_ANYTHING_JAR}" \
-      -o "$BIN_DIR/${SPARQL_ANYTHING_JAR}"
+    curl -sSfL "https://github.com/SPARQL-Anything/sparql.anything/releases/download/${SPARQL_ANYTHING_VERSION}/${SPARQL_ANYTHING_JAR}" \
+      -o "$BIN_DIR/${SPARQL_ANYTHING_JAR}.part"
+    # Verify the checksum before using the jar (sha256sum on Linux, shasum on macOS)
+    if command -v sha256sum >/dev/null; then
+        actual_sha=$(sha256sum "$BIN_DIR/${SPARQL_ANYTHING_JAR}.part" | cut -d' ' -f1)
+    else
+        actual_sha=$(shasum -a 256 "$BIN_DIR/${SPARQL_ANYTHING_JAR}.part" | cut -d' ' -f1)
+    fi
+    if [ "$actual_sha" != "$SPARQL_ANYTHING_SHA256" ]; then
+        rm -f "$BIN_DIR/${SPARQL_ANYTHING_JAR}.part"
+        echo "Error: checksum mismatch for $SPARQL_ANYTHING_JAR (expected $SPARQL_ANYTHING_SHA256, got $actual_sha)"
+        exit 1
+    fi
+    mv "$BIN_DIR/${SPARQL_ANYTHING_JAR}.part" "$BIN_DIR/${SPARQL_ANYTHING_JAR}"
 fi
 
 # Step 3: Geonames ontology

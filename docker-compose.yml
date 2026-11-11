@@ -3,6 +3,7 @@ services:
   geonames-download:
     build: .
     container_name: geonames-download
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"  # run as the host user (set by run.sh), not root
     volumes:
       - ./data:/app/data
       - ./output:/app/output
@@ -14,6 +15,7 @@ services:
   geonames-transform:
     build: .
     container_name: geonames-transform
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"  # run as the host user (set by run.sh), not root
     volumes:
       - ./data:/app/data
       - ./output:/app/output
@@ -26,6 +28,7 @@ services:
   geonames-merge:
     build: .
     container_name: geonames-merge
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"  # run as the host user (set by run.sh), not root
     volumes:
       - ./output:/data
     entrypoint: /bin/sh
@@ -40,6 +43,7 @@ services:
   geonames-upload:
     build: .
     container_name: geonames-upload
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"  # run as the host user (set by run.sh), not root
     environment:
       - UPLOAD_QENDPOINT=true
       - QENDPOINT_HOST=qendpoint

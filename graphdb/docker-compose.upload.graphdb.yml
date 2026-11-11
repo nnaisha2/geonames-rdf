@@ -10,12 +10,14 @@ services:
   geonames-upload:
     build: ..
     container_name: geonames-upload
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"  # run as the host user (set by run.sh), not root
     environment:
       - UPLOAD_GRAPHDB=true
       - GRAPHDB_HOST=graphdb
       - COUNTRY_CODE  
     volumes:
-      - ./output:/output
+      # upload_to_graphdb.sh reads /app/output; paths here are relative to graphdb/
+      - ../output:/app/output
     depends_on:
       - graphdb
     command: sh -c "./scripts/entrypoint-upload.sh $COUNTRY_CODE"
